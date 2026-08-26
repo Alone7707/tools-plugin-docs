@@ -14,7 +14,7 @@ const siteConfigOptions = {
       { text: '3. 选择插件', link: '/select-plugin' },
       { text: '4. 调试', link: '/debugging' },
       { text: '5. 到开发者后台上传插件', link: '/release' },
-      { text: '开放 API', link: '/api/plugin-api' }
+      { text: 'API 参考', link: '/api/plugin-api' }
     ],
     sidebar: {
       '/': [
@@ -29,22 +29,42 @@ const siteConfigOptions = {
           ]
         },
         {
-          text: '开放 API',
+          text: 'API 参考',
           items: [
-            { text: '受控插件 API', link: '/api/plugin-api' },
-            { text: 'TypeScript 类型参考', link: '/api/types' },
+            { text: 'API 总览', link: '/api/plugin-api' },
+            { text: '事件', link: '/api/events' },
+            { text: '窗口', link: '/api/window' },
+            { text: '复制', link: '/api/copy' },
+            { text: '输入', link: '/api/input' },
+            { text: '系统', link: '/api/system' },
+            { text: '屏幕', link: '/api/screen' },
+            { text: '用户', link: '/api/user' },
+            { text: '数据存储', link: '/api/db' },
+            { text: '动态指令', link: '/api/features' }
+          ]
+        },
+        {
+          text: '插件应用基础',
+          items: [
+            { text: '运行模型与目录结构', link: '/runtime' },
+            { text: 'Manifest 规范', link: '/manifest' },
+            { text: '权限与能力矩阵', link: '/permissions' }
+          ]
+        },
+        {
+          text: '代码提示',
+          items: [
+            { text: 'TypeScript 类型提示', link: '/api/types' },
+            { text: 'Manifest 字段提示', link: '/manifest' },
             { text: '事件、类型与错误', link: '/api/contracts' }
           ]
         },
         {
-          text: '开发参考',
+          text: '版本与兼容性',
           items: [
-            { text: '运行模型与目录结构', link: '/runtime' },
-            { text: 'Manifest 规范', link: '/manifest' },
-            { text: '权限与能力矩阵', link: '/permissions' },
             { text: '版本与兼容性', link: '/compatibility' }
           ]
-        },
+        }
       ]
     },
     footer: {
