@@ -10,7 +10,7 @@ pnpm build
 pnpm preview
 ```
 
-站点内容位于 `docs/`，线上插件后台为 [https://tools.770733914.xyz/](https://tools.770733914.xyz/)。
+站点内容位于 `docs/`，线上插件后台为 [https://tools.770733914.xyz/admin](https://tools.770733914.xyz/admin)。
 
 ## 页面范围
 

@@ -2,7 +2,7 @@
 
 ## 插件后台
 
-[打开 AToolBox 插件后台](https://tools.770733914.xyz/)
+[打开 AToolBox 插件后台](https://tools.770733914.xyz/admin)
 
 ## 一键上传
 

@@ -13,7 +13,7 @@ const siteConfigOptions = {
       { text: '开放 API', link: '/api/plugin-api' },
       { text: '开发教程', link: '/getting-started' },
       { text: '调试教程', link: '/debugging' },
-      { text: '后台地址', link: 'https://tools.770733914.xyz/' },
+      { text: '后台地址', link: 'https://tools.770733914.xyz/admin' },
       { text: '上传教程', link: '/release' }
     ],
     sidebar: {
@@ -51,7 +51,7 @@ const siteConfigOptions = {
         {
           text: '后台地址',
           items: [
-            { text: '打开插件后台', link: 'https://tools.770733914.xyz/' }
+            { text: '打开插件后台', link: 'https://tools.770733914.xyz/admin' }
           ]
         },
         {
