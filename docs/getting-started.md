@@ -1,61 +1,79 @@
 # 开发教程
 
-## 1. 准备运行环境
+## 开发流程
 
-在仓库根目录执行：
+AToolBox 插件由宿主动态加载，是一个远程 Vue 3 ESM 组件。推荐流程如下：
 
-```bash
-pnpm install
-pnpm dev:server
-pnpm dev
-```
+1. 下载[插件模板](/example)，复制为新的插件目录。
+2. 修改 `manifest.json` 和 `index.js`，完成组件功能。
+3. 在客户端申请插件开发者资格。
+4. 在开发者专区登记本地目录并调试。
+5. 在[插件后台](https://tools.770733914.xyz/admin)上传、送审，审核通过后发布。
 
-将插件目录放在 `server/public/plugins/<plugin-folder>/`，开发服务会把它作为静态资源托管。桌面端开发模式使用该目录下的入口 URL 加载插件。
+本地调试由 AToolBox 客户端动态托管；线上上传和开发者后台使用 `https://tools.770733914.xyz`。
 
-## 2. 创建最小插件
+## 申请开发者资格
 
-目录：
+在 AToolBox 客户端打开「个人中心 → 申请插件开发者」，填写插件计划和联系方式，提交后等待管理员审核。申请通过后，侧栏入口会变为「开发者专区」。
+
+![申请插件开发者](/images/developer-apply.png)
+
+## 插件目录
 
 ```text
 my_plugin/
-├── manifest.json
-└── index.js
+├── manifest.json    # 必需：插件元数据
+├── index.js         # 必需：ESM 入口
+├── README.md        # 可选：说明文档
+└── assets/          # 可选：图片与其他资源
 ```
 
-`manifest.json`：
+上传包最多 20 个文件，单文件不超过 512 KB，总大小不超过 2 MB，目录最多 3 层。支持 `.js`、`.mjs`、`.json`、`.css`、`.md`、`.svg`、`.txt`、`.png`、`.jpg`、`.jpeg`、`.webp` 和 `.gif`。
+
+## manifest.json
 
 ```json
 {
-  "code": "word_counter",
-  "name": "字数统计",
+  "code": "my_plugin",
+  "name": "我的插件",
   "version": "1.0.0",
-  "description": "统计文本中的字符、词和行",
-  "author": "开发者",
+  "description": "插件功能说明",
+  "author": "Developer",
   "entry": "index.js",
   "runtime": "vue",
-  "category": "效率办公",
-  "keywords": ["word", "字数"],
-  "permissions": ["clipboard:write"],
-  "features": [
-    { "name": "字数统计", "description": "统计输入文本", "code": "count", "cmds": ["字数"] }
-  ],
-  "config": { "showStats": true }
+  "category": "开发工具",
+  "keywords": ["tool"],
+  "tags": ["工具"],
+  "icon": "🧩",
+  "permissions": [],
+  "features": [],
+  "clipboardRules": [],
+  "config": {},
+  "changelog": [
+    { "version": "1.0.0", "notes": "首个版本" }
+  ]
 }
 ```
 
-`index.js`：
+关键约束：
+
+| 字段 | 规则 |
+| --- | --- |
+| `code` | 2-50 位 snake_case，小写字母开头；发布后不可修改 |
+| `version` | 三段式版本号；发布新代码必须递增 |
+| `entry` | 包内存在的 `.js` 或 `.mjs` 相对路径 |
+| `runtime` | 固定为 `vue` |
+| `permissions` | `clipboard:read`、`clipboard:write`、`network:fetch` 的组合 |
+
+## 入口组件
+
+入口必须默认导出 Vue 组件，并从 `window.Vue` 获取运行时：
 
 ```js
-const VueRuntime = window.Vue
-// 宿主注入的 Vue 运行时。
-
-if (!VueRuntime) throw new Error('AToolBox Vue runtime is unavailable')
-
-const { defineComponent, ref, computed, h, onMounted, onBeforeUnmount } = VueRuntime
-// 插件使用的 Vue API。
+const { defineComponent, ref, h } = window.Vue
 
 export default defineComponent({
-  name: 'WordCounterPlugin',
+  name: 'MyPlugin',
   props: {
     config: { type: Object, default: () => ({}) },
     initialText: { type: String, default: '' },
@@ -63,52 +81,10 @@ export default defineComponent({
     api: { type: Object, default: null }
   },
   setup(props) {
-    const text = ref(String(props.initialText || ''))
-    // 当前编辑文本。
-    const characterCount = computed(() => Array.from(text.value).length)
-    // Unicode 字符数。
-    let removeEnterListener = null
-    // 进入事件取消函数。
-
-    /** 同步宿主再次进入插件时带入的文本。 */
-    function handlePluginEnter(action) {
-      if (action && action.type !== 'img') text.value = String(action.payload || '')
-    }
-
-    onMounted(() => {
-      if (props.api && props.api.onPluginEnter) {
-        removeEnterListener = props.api.onPluginEnter(handlePluginEnter)
-      }
-    })
-
-    onBeforeUnmount(() => {
-      removeEnterListener && removeEnterListener()
-      removeEnterListener = null
-    })
-
-    return () => h('main', { class: 'plugin-word-counter' }, [
-      h('textarea', {
-        value: text.value,
-        onInput: (event) => { text.value = event.target.value }
-      }),
-      h('p', null, `字符数：${characterCount.value}`),
-      h('button', {
-        type: 'button',
-        onClick: () => props.api && props.api.copyText(text.value)
-      }, '复制')
-    ])
+    const text = ref(props.initialText)
+    return () => h('main', { class: 'plugin-my-plugin' }, text.value || '请输入文本')
   }
 })
 ```
 
-## 3. 调试入口
-
-开发者专区可以登记插件目录。重新登记或点击“重新加载”会递增调试版本指纹，浏览器会重新请求模块；开发模式不需要为了每次改动修改正式版本号。
-
-## 4. 验收前检查
-
-- 入口文件是原生 ESM，且存在 `export default`。
-- 没有 `require`、`fs`、`electron`、`ipcRenderer` 或 Node 内置模块。
-- 所有定时器、事件监听器在 `onBeforeUnmount` / `onUnmounted` 中清理。
-- 自定义 CSS 使用 `plugin-` 前缀，不覆盖宿主全局样式。
-- 代码改动后递增 `manifest.version` 再发布。
+`api` 可能为 `null`。使用复制、通知、存储、跳转或独立窗口能力前要判断方法是否存在；组件卸载时清理定时器和事件监听。宿主顶部标题栏由 AToolBox 绘制，插件不要自绘标题栏或声明 `-webkit-app-region: drag`。

@@ -1,46 +1,36 @@
 # 调试教程
 
-## 推荐目录与入口
+## 开发者专区
 
-将插件目录放入：
+申请通过后，在 AToolBox 客户端打开「个人中心 → 开发者专区」。这个窗口用于登记本地插件目录、打开调试和重新加载源码。
 
-```text
-server/public/plugins/my-plugin/
-├── manifest.json
-└── index.js
-```
+![开发者专区](/images/developer-zone.png)
 
-启动后端和桌面端：
+点击「选择插件目录」，选择包含 `manifest.json` 的插件根目录；也可以把目录或目录中的 `manifest.json` 拖入窗口。登记后点击「打开调试」，客户端会在主窗口加载插件。
 
-```bash
-pnpm dev:server
-pnpm dev
-```
+开发者专区显示的本地托管地址由客户端动态分配，仅用于当前电脑调试，不要写入 `manifest.json`，也不要把端口固定到文档或代码中。
 
-开发者专区登记目录后，桌面端会启动静态插件服务并生成 `entryUrl`。在开发模式下入口会附加时间戳查询参数，修改 `index.js` 后点击“重新加载”即可看到最新代码。
+## 修改后生效
 
-## 调试检查表
+修改 `index.js`、样式或其他资源后，回到开发者专区点击「重新加载」，再打开插件即可获取最新代码。重新加载会更新本地调试版本指纹，正式版本号不需要因每次调试修改。
 
-- 使用桌面端 DevTools 控制台查看插件与宿主同一渲染进程中的日志。
-- 首先检查 `window.Vue` 是否存在，再检查入口是否导出了 Vue 组件。
-- 加载超时通常表示后端未启动、入口 URL 不可达或 CORS 配置错误。
-- `api` 为空属于受支持场景，浏览器预览应提供标准 Web API 兜底。
-- 进入动作变化时检查 `enterAction` prop 和 `api.onPluginEnter` 是否同步处理。
-- 热重载时确认取消函数已执行，避免旧监听器重复响应。
+如果修改了 `manifest.json` 的 `config` 默认值，先在开发者专区移除登记，再重新选择插件目录，才能重新读取配置。
 
-## 常见错误
+## 调试检查
 
-| 现象 | 原因 | 处理 |
-| --- | --- | --- |
-| `window.Vue` 未找到 | 直接在浏览器打开，或插件把 Vue 打包方式写错 | 从宿主加载；改为 `window.Vue` |
-| 入口规范错误 | 缺少 `export default` 或导出对象不是组件 | 导出 Vue 组件 |
-| 点击复制失败 | 使用了 `navigator.clipboard` 且窗口失焦 | 优先 `api.copyText` |
-| 改代码但页面不变 | 生产模式命中版本缓存 | 调试时重新加载；发布时递增 `version` |
-| 标题栏按钮失效 | 插件自绘标题栏或声明 `-webkit-app-region: drag` | 删除自绘标题栏和拖动 CSS |
+- 入口文件必须存在 `export default`，并且是原生 ESM。
+- 运行时从 `window.Vue` 获取，不要重复打包 Vue。
+- 不要使用 `require`、`fs`、`electron`、`ipcRenderer` 或其他 Node.js 内置模块。
+- `api` 和具体 API 方法都要做存在性判断，浏览器预览或异常恢复页中 `api` 可能为空。
+- 所有事件监听、定时器和 `api.onPluginEnter` 返回的取消函数都要在卸载时清理。
+- 自定义 CSS 使用 `plugin-` 前缀，避免覆盖宿主样式。
 
-## 参考实现
+## 常见问题
 
-- `plugin-example/index.js`：包含进入动作、隔离存储、通知、复制、副标题和分离载荷。
-- `plugins/_template/index.js`：最小远程 Vue 插件模板。
-- `server/public/plugins/demo-json-toolbox/`：多文件与剪贴板规则示例。
-- `server/public/plugins/demo-color-picker/`：打开即执行、完成后退出的工具示例。
+| 现象 | 处理 |
+| --- | --- |
+| 找不到 `window.Vue` | 通过 AToolBox 宿主打开，不要直接在浏览器运行入口文件 |
+| 入口加载失败 | 检查 `entry` 路径、`export default` 和是否误写 TypeScript 语法 |
+| 修改后页面不变 | 回开发者专区点击「重新加载」 |
+| 复制失败 | 优先使用 `api.copyText`，不要只依赖浏览器剪贴板 |
+| 顶栏按钮无法点击 | 删除插件自绘标题栏和 `-webkit-app-region: drag` |

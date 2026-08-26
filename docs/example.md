@@ -1,40 +1,29 @@
 # 插件模板下载
 
-下载并运行一个完整的 AToolBox 插件模板，再按开发教程修改。
+这是与 AToolBox 完整项目同步的可运行插件模板，包含文本工作台、进入动作、剪贴板、隔离存储、系统通知、主题和宿主顶栏交互示例。
 
-## 下载文件
+## 下载
 
-- [manifest.json](/examples/word-counter/manifest.json)
-- [index.js](/examples/word-counter/index.js)
+- [下载插件模板 ZIP](/templates/plugin-example.zip)
+- [manifest.json](/templates/plugin-example/manifest.json)
+- [index.js](/templates/plugin-example/index.js)
+- [README.md](/templates/plugin-example/README.md)
 
-目录结构：
+解压后目录结构如下：
 
 ```text
-word_counter/
+plugin-example/
 ├── manifest.json
-└── index.js
+├── index.js
+└── README.md
 ```
 
-## 示例覆盖的契约
+## 使用
 
-| 能力 | 实现位置 |
-| --- | --- |
-| Vue 运行时 | 从 `window.Vue` 获取 |
-| 初始内容 | `initialText` prop |
-| 再次进入 | `api.onPluginEnter` |
-| 隔离存储 | `api.db.put/get` |
-| 系统剪贴板 | `api.copyText` |
-| 系统通知 | `api.showNotification` |
-| 深色模式 | `api.isDarkColors` |
-| 标题栏副标题 | `api.setSubtitle` |
-| 双击分离载荷 | `api.setDetachPayload` |
-| 资源清理 | `onBeforeUnmount` 中取消监听和分离载荷 |
+1. 解压 ZIP，并复制一份作为自己的插件目录。
+2. 修改 `manifest.json` 中的 `code`、`name`、`description` 和 `author`。
+3. 按[开发教程](/getting-started)在 AToolBox 客户端的开发者专区登记目录。
+4. 按[调试教程](/debugging)修改代码并重新加载。
+5. 调试完成后按[上传教程](/release)上传到后台送审。
 
-## 使用方式
-
-1. 下载两个文件并放到同一目录。
-2. 在 AToolBox 开发者专区登记该目录。
-3. 修改 `index.js` 后点击“重新加载”。
-4. 准备发布时修改 `code`、名称、作者信息，并递增 `version`。
-
-示例只使用稳定插件 API，不依赖 `window.atoolbox` 内部窗口协议。
+模板入口是原生 ESM，使用宿主提供的 `window.Vue`，不需要安装 Vue，也不能使用 Node.js、Electron 或 `require`。

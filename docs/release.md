@@ -4,62 +4,52 @@
 
 [打开 AToolBox 插件后台](https://tools.770733914.xyz/admin)
 
-## 一键上传
+后台用于上传插件包、查看审核意见、提交审核和查看发布状态。客户端与后台使用同一套账号。
+
+## 上传插件
+
+1. 登录[插件后台](https://tools.770733914.xyz/admin)。
+2. 打开「上传插件」页面，点击「上传插件」。
+3. 选择插件根目录，目录必须包含 `manifest.json` 和入口文件。
+4. 确认后台读取到插件名称、编码、版本和文件数量后点击「上传」。
+5. 上传成功后记录进入「草稿」状态，确认自测完成后点击「提交审核」。
+
+上传界面会按服务端规则校验清单和文件：`manifest.code` 必须与插件记录一致，`manifest.entry` 必须指向包内文件，文件数量、大小、目录深度和扩展名也必须符合限制。
+
+## 审核与发布
+
+```text
+草稿 ──提交审核──> 审核中 ──管理员通过──> 已发布
+  ↑                    │
+  └──── 修改并递增版本 <── 驳回
+```
+
+管理员会重点检查功能描述与实际行为、权限声明、入口安全、剪贴板规则和数据采集说明。被驳回时查看审核意见，修改代码或清单并递增 `version`，再上传新版本并重新提交。
+
+已发布版本内容不可覆盖；即使只是修改一行代码，也必须使用新的三段式版本号。旧版本会继续保持可见，直到新版本审核通过并发布。
+
+## 命令行上传
+
+在 AToolBox 完整项目根目录执行：
 
 ```bash
-node scripts/create-plugin.mjs my_tool --name "我的工具"
-node scripts/publish-plugin.mjs server/public/plugins/my_tool \
+node scripts/publish-plugin.mjs <插件目录> \
   --api https://tools.770733914.xyz/ \
-  --username dev1 \
-  --password secret \
+  --username <账号> \
+  --password <密码> \
   --submit
 ```
 
-上传脚本会读取 `manifest.json`，登录开发者账号，上传包；指定 `--submit` 时继续把版本送审。
+`--submit` 会在上传成功后直接送审；不加该参数时，上传结果保留为草稿，可在后台检查后再提交。
 
-## 状态流转
+## 开放接口
 
-```text
-draft ── submit ──> submitted ── 管理员 publish ──> published
-  ↑                      │
-  └────── 新版本上传 <── reject
-```
+开发者接口使用登录后获得的 JWT，并在请求中携带 `Authorization: Bearer <token>`：
 
-发布后的版本目录不可覆盖。修改任意代码、清单或静态资源都必须递增 `manifest.version`，重新上传并送审。旧的已发布版本在新版本发布前仍保持可见。
-
-## 手动 HTTP API
-
-开发者接口需要 JWT：先调用登录接口获得 token，再携带 `Authorization: Bearer <token>`。
-
-| 方法 | 路径 | 说明 |
+| 方法 | 路径 | 作用 |
 | --- | --- | --- |
-| `GET` | `/api/store/plugins?keyword=&category=&sort=` | 公开商店目录 |
-| `GET` | `/api/store/plugins/:code` | 公开插件详情 |
-| `POST` | `/api/store/plugins/:code/download` | 上报下载计数 |
-| `GET` | `/api/dev/plugins` | 当前开发者的提交 |
-| `POST` | `/api/dev/plugins` | 创建/更新元数据草稿 |
+| `GET` | `/api/dev/plugins` | 查看当前账号的插件提交 |
+| `POST` | `/api/dev/plugins` | 创建或更新元数据草稿 |
 | `POST` | `/api/dev/plugins/:code/package` | 上传插件包 |
-| `POST` | `/api/dev/plugins/:code/submit` | 送审 |
+| `POST` | `/api/dev/plugins/:code/submit` | 提交审核 |
 | `DELETE` | `/api/dev/plugins/:code` | 删除插件记录和包 |
-
-上传包载荷：
-
-```json
-{
-  "files": [
-    { "path": "manifest.json", "content": "{...}" },
-    { "path": "index.js", "content": "..." },
-    { "path": "assets/logo.png", "content": "<base64>", "encoding": "base64" }
-  ]
-}
-```
-
-包内必须存在 `manifest.json`，其 `code` 必须与 URL 中的 `:code` 一致，`entry` 必须指向上传文件。也可以登记自托管 `entryUrl`，但生产环境应使用 HTTPS 并正确配置 CORS。
-
-## 审核基线
-
-- 清单描述、功能和截图一致。
-- `permissions` 与代码实际访问剪贴板或网络的行为一致。
-- 不使用混淆代码、任意远程脚本执行器或未说明的数据采集。
-- 剪贴板规则的正则可编译、匹配范围克制，不造成灾难性回溯。
-- 发布包遵守文件数量、大小、路径深度和扩展名限制。

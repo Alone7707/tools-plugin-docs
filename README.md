@@ -10,7 +10,9 @@ pnpm build
 pnpm preview
 ```
 
-站点内容位于 `docs/`，线上插件后台为 [https://tools.770733914.xyz/admin](https://tools.770733914.xyz/admin)。
+站点内容位于 `docs/`，线上 API 基地址为 [https://tools.770733914.xyz](https://tools.770733914.xyz)，插件后台为 [https://tools.770733914.xyz/admin](https://tools.770733914.xyz/admin)。
+
+本地调试由 AToolBox 客户端动态托管；线上发布和后台接口使用 `https://tools.770733914.xyz`。
 
 ## 页面范围
 
