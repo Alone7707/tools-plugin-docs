@@ -1,11 +1,15 @@
-# 上传、审核与发布
+# 上传教程
+
+## 插件后台
+
+[打开 AToolBox 插件后台](https://tools.770733914.xyz/)
 
 ## 一键上传
 
 ```bash
 node scripts/create-plugin.mjs my_tool --name "我的工具"
 node scripts/publish-plugin.mjs server/public/plugins/my_tool \
-  --api http://localhost:3000 \
+  --api https://tools.770733914.xyz/ \
   --username dev1 \
   --password secret \
   --submit

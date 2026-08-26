@@ -9,40 +9,55 @@ const siteConfigOptions = {
   themeConfig: {
     socialLinks: [],
     nav: [
-      { text: '指南', link: '/getting-started' },
-      { text: '插件 API', link: '/api/plugin-api' },
-      { text: 'Electron Bridge', link: '/api/electron-bridge' },
-      { text: '规范参考', link: '/reference' },
-      { text: '发布', link: '/release' }
+      { text: '插件模板下载', link: '/example' },
+      { text: '开放 API', link: '/api/plugin-api' },
+      { text: '开发教程', link: '/getting-started' },
+      { text: '调试教程', link: '/debugging' },
+      { text: '后台地址', link: 'https://tools.770733914.xyz/' },
+      { text: '上传教程', link: '/release' }
     ],
     sidebar: {
       '/': [
         {
-          text: '开始开发',
+          text: '插件模板下载',
           items: [
-            { text: '概览', link: '/' },
-            { text: '快速开始', link: '/getting-started' },
-            { text: '运行模型与目录结构', link: '/runtime' },
-            { text: 'Manifest 规范', link: '/manifest' },
-            { text: '完整示例插件', link: '/example' }
+            { text: '下载可运行模板', link: '/example' }
           ]
         },
         {
-          text: 'API 参考',
+          text: '开放 API',
           items: [
-            { text: '受控插件 API（推荐）', link: '/api/plugin-api' },
+            { text: '受控插件 API', link: '/api/plugin-api' },
             { text: 'TypeScript 类型参考', link: '/api/types' },
-            { text: 'Electron Bridge 完整清单', link: '/api/electron-bridge' },
-            { text: '事件、类型与错误', link: '/api/contracts' },
+            { text: '事件、类型与错误', link: '/api/contracts' }
+          ]
+        },
+        {
+          text: '开发教程',
+          items: [
+            { text: '快速开始', link: '/getting-started' },
+            { text: '运行模型与目录结构', link: '/runtime' },
+            { text: 'Manifest 规范', link: '/manifest' },
             { text: '权限与能力矩阵', link: '/permissions' }
           ]
         },
         {
-          text: '工程流程',
+          text: '调试教程',
           items: [
             { text: '本地调试', link: '/debugging' },
-            { text: '上传、审核与发布', link: '/release' },
             { text: '版本与兼容性', link: '/compatibility' }
+          ]
+        },
+        {
+          text: '后台地址',
+          items: [
+            { text: '打开插件后台', link: 'https://tools.770733914.xyz/' }
+          ]
+        },
+        {
+          text: '上传教程',
+          items: [
+            { text: '上传、审核与发布', link: '/release' }
           ]
         }
       ]

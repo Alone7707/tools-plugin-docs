@@ -10,13 +10,15 @@ pnpm build
 pnpm preview
 ```
 
-站点内容位于 `docs/`，Electron bridge 全量接口索引位于 `docs/api/electron-bridge.md`。
+站点内容位于 `docs/`，线上插件后台为 [https://tools.770733914.xyz/](https://tools.770733914.xyz/)。
 
-## 内容边界
+## 页面范围
 
-- `api/plugin-api.md`：第三方插件应依赖的稳定 API。
-- `api/electron-bridge.md`：preload 当前暴露的完整 `window.atoolbox` 清单，包含内部窗口协议。
-- `reference.md`、`permissions.md`、`compatibility.md`：规范、权限和版本兼容参考。
+- `example.md`：插件模板下载。
+- `api/plugin-api.md`：开放 API。
+- `getting-started.md`、`runtime.md`、`manifest.md`、`permissions.md`：开发教程。
+- `debugging.md`、`compatibility.md`：调试教程。
+- `release.md`：上传教程。
 
-文档中的接口以 AToolBox 当前客户端实现为快照；发生 API 变更时，应同步更新 bridge 清单、受控 API 和兼容性页面。
+文档中的接口以 AToolBox 当前客户端实现为快照；发生 API 变更时，应同步更新开放 API 和兼容性页面。
 "# tools-plugin-docs" 
