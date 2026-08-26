@@ -8,16 +8,22 @@ AToolBox 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在
 2. Vue 从 `window.Vue` 获取，不要在插件包中重复打包 Vue。
 3. 宿主能力通过 `api` prop 传入；优先使用 [受控插件 API](/api/plugin-api)，不要把 `window.atoolbox` 当作第三方稳定 API。
 
-## 快速入口
+## 开发流程
+
+| 阶段 | 进入 |
+| --- | --- |
+| 1. 下载插件模板 | [下载可运行模板](/example) |
+| 2. 开发 | [编写插件代码](/getting-started) |
+| 3. 选择插件 | [登记插件目录](/select-plugin) |
+| 4. 调试 | [打开插件并重新加载](/debugging) |
+| 5. 到开发者后台上传插件 | [上传插件](/release) |
+
+## API 与规范
 
 | 目标 | 文档 |
 | --- | --- |
-| 下载插件模板 | [插件模板下载](/example) |
 | 调用宿主能力 | [开放 API](/api/plugin-api) |
-| 开始编写插件 | [开发教程](/getting-started) |
-| 本地热更新与排错 | [调试教程](/debugging) |
 | 调用线上 HTTP API | [https://tools.770733914.xyz](https://tools.770733914.xyz) |
-| 打开插件后台 | [后台地址](https://tools.770733914.xyz/admin) |
-| 上传、送审和发布版本 | [上传教程](/release) |
+| 查看运行模型与 Manifest | [开发参考](/runtime) |
 
 开放 API 的类型补充和事件约定可从侧边栏进入；开发教程中包含运行模型、Manifest 和权限说明。

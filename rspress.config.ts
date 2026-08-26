@@ -9,19 +9,23 @@ const siteConfigOptions = {
   themeConfig: {
     socialLinks: [],
     nav: [
-      { text: '插件模板下载', link: '/example' },
-      { text: '开放 API', link: '/api/plugin-api' },
-      { text: '开发教程', link: '/getting-started' },
-      { text: '调试教程', link: '/debugging' },
-      { text: '后台地址', link: 'https://tools.770733914.xyz/admin' },
-      { text: '上传教程', link: '/release' }
+      { text: '1. 下载插件模板', link: '/example' },
+      { text: '2. 开发', link: '/getting-started' },
+      { text: '3. 选择插件', link: '/select-plugin' },
+      { text: '4. 调试', link: '/debugging' },
+      { text: '5. 到开发者后台上传插件', link: '/release' },
+      { text: '开放 API', link: '/api/plugin-api' }
     ],
     sidebar: {
       '/': [
         {
-          text: '插件模板下载',
+          text: '开发流程',
           items: [
-            { text: '下载可运行模板', link: '/example' }
+            { text: '1. 下载插件模板', link: '/example' },
+            { text: '2. 开发', link: '/getting-started' },
+            { text: '3. 选择插件', link: '/select-plugin' },
+            { text: '4. 调试', link: '/debugging' },
+            { text: '5. 到开发者后台上传插件', link: '/release' }
           ]
         },
         {
@@ -33,33 +37,14 @@ const siteConfigOptions = {
           ]
         },
         {
-          text: '开发教程',
+          text: '开发参考',
           items: [
-            { text: '快速开始', link: '/getting-started' },
             { text: '运行模型与目录结构', link: '/runtime' },
             { text: 'Manifest 规范', link: '/manifest' },
-            { text: '权限与能力矩阵', link: '/permissions' }
-          ]
-        },
-        {
-          text: '调试教程',
-          items: [
-            { text: '本地调试', link: '/debugging' },
+            { text: '权限与能力矩阵', link: '/permissions' },
             { text: '版本与兼容性', link: '/compatibility' }
           ]
         },
-        {
-          text: '后台地址',
-          items: [
-            { text: '打开插件后台', link: 'https://tools.770733914.xyz/admin' }
-          ]
-        },
-        {
-          text: '上传教程',
-          items: [
-            { text: '上传、审核与发布', link: '/release' }
-          ]
-        }
       ]
     },
     footer: {

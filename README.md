@@ -16,11 +16,13 @@ pnpm preview
 
 ## 页面范围
 
-- `example.md`：插件模板下载。
+- `example.md`：1. 下载插件模板。
 - `api/plugin-api.md`：开放 API。
-- `getting-started.md`、`runtime.md`、`manifest.md`、`permissions.md`：开发教程。
-- `debugging.md`、`compatibility.md`：调试教程。
-- `release.md`：上传教程。
+- `getting-started.md`：2. 开发。
+- `select-plugin.md`：3. 选择插件。
+- `debugging.md`：4. 调试。
+- `release.md`：5. 到开发者后台上传插件。
+- `runtime.md`、`manifest.md`、`permissions.md`、`compatibility.md`：开发参考。
 
 文档中的接口以 AToolBox 当前客户端实现为快照；发生 API 变更时，应同步更新开放 API 和兼容性页面。
 "# tools-plugin-docs" 
