@@ -26,4 +26,4 @@ AToolBox 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在
 | 调用线上 HTTP API | [https://tools.770733914.xyz](https://tools.770733914.xyz) |
 | 查看运行模型与 Manifest | [开发参考](/runtime) |
 
-开放 API 的类型补充和事件约定可从侧边栏进入；开发教程中包含运行模型、Manifest 和权限说明。
+开放 API 的类型补充和事件约定可从侧边栏进入；开发参考中包含运行模型、Manifest、权限和兼容性说明。

