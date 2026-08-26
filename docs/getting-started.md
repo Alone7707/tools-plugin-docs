@@ -60,8 +60,6 @@ my_plugin/
 - `runtime` 当前固定为 `vue`。
 - `permissions` 只声明插件实际需要的权限。
 
-完整字段见 [Manifest 规范](/manifest)。
-
 ## 编写入口组件
 
 入口文件必须是原生 JavaScript ESM，并默认导出一个 Vue 组件：
@@ -92,7 +90,7 @@ export default defineComponent({
 - CSS 类名使用 `plugin-` 前缀，避免覆盖宿主样式。
 - 标题栏由宿主绘制，不要自绘标题栏或使用 `-webkit-app-region: drag`。
 
-运行模型与组件参数见 [运行模型与目录结构](/runtime)，宿主能力见 [开放 API](/api/plugin-api)。
+宿主能力见 [API 参考](/api/plugin-api)。
 
 ## 下一步
 

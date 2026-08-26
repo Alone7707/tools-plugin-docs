@@ -25,8 +25,6 @@ pnpm preview
 - `api/events.md`、`window.md`、`copy.md`、`input.md`：事件、窗口、复制和输入 API。
 - `api/system.md`、`screen.md`、`user.md`：系统、屏幕和用户 API。
 - `api/db.md`、`features.md`：数据存储和动态指令 API。
-- `api/types.md`、`contracts.md`：类型提示、事件结构和错误行为。
-- `runtime.md`、`manifest.md`、`permissions.md`、`compatibility.md`：开发参考。
 
-文档中的接口以 AToolBox 当前客户端实现为快照；发生 API 变更时，应同步更新开放 API 和兼容性页面。
+文档中的接口以 AToolBox 当前客户端实现为快照；发生 API 变更时，应同步更新 API 参考页面。
 "# tools-plugin-docs" 

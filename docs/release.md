@@ -29,29 +29,3 @@
 管理员会重点检查功能描述与实际行为、权限声明、入口安全、剪贴板规则和数据采集说明。被驳回时查看审核意见，修改代码或清单并递增 `version`，再上传新版本并重新提交。
 
 已发布版本内容不可覆盖；即使只是修改一行代码，也必须使用新的三段式版本号。旧版本会继续保持可见，直到新版本审核通过并发布。
-
-## 命令行上传
-
-在 AToolBox 完整项目根目录执行：
-
-```bash
-node scripts/publish-plugin.mjs <插件目录> \
-  --api https://tools.770733914.xyz/ \
-  --username <账号> \
-  --password <密码> \
-  --submit
-```
-
-`--submit` 会在上传成功后直接送审；不加该参数时，上传结果保留为草稿，可在后台检查后再提交。
-
-## 开放接口
-
-开发者接口使用登录后获得的 JWT，并在请求中携带 `Authorization: Bearer <token>`：
-
-| 方法 | 路径 | 作用 |
-| --- | --- | --- |
-| `GET` | `/api/dev/plugins` | 查看当前账号的插件提交 |
-| `POST` | `/api/dev/plugins` | 创建或更新元数据草稿 |
-| `POST` | `/api/dev/plugins/:code/package` | 上传插件包 |
-| `POST` | `/api/dev/plugins/:code/submit` | 提交审核 |
-| `DELETE` | `/api/dev/plugins/:code` | 删除插件记录和包 |

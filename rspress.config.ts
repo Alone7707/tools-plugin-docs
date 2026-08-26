@@ -42,28 +42,6 @@ const siteConfigOptions = {
             { text: '数据存储', link: '/api/db' },
             { text: '动态指令', link: '/api/features' }
           ]
-        },
-        {
-          text: '插件应用基础',
-          items: [
-            { text: '运行模型与目录结构', link: '/runtime' },
-            { text: 'Manifest 规范', link: '/manifest' },
-            { text: '权限与能力矩阵', link: '/permissions' }
-          ]
-        },
-        {
-          text: '代码提示',
-          items: [
-            { text: 'TypeScript 类型提示', link: '/api/types' },
-            { text: 'Manifest 字段提示', link: '/manifest' },
-            { text: '事件、类型与错误', link: '/api/contracts' }
-          ]
-        },
-        {
-          text: '版本与兼容性',
-          items: [
-            { text: '版本与兼容性', link: '/compatibility' }
-          ]
         }
       ]
     },

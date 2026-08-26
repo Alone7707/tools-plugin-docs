@@ -36,4 +36,3 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 - 剪贴板读写会按 `manifest.permissions` 做能力检查；未声明权限时返回空值或 `false`。
 - 插件不能直接调用 Node.js、Electron 主进程、`require` 或内部 IPC。
 - `window.atoolbox` 是宿主内部 bridge，不是第三方插件的稳定 API。
-- API 类型声明可从 [TypeScript 类型提示](/api/types) 下载，统一事件结构和错误行为见[事件、类型与错误](/api/contracts)。

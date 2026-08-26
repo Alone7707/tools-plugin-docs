@@ -61,4 +61,4 @@ const removeEnter = api && api.onPluginEnter
   : null
 ```
 
-剪贴板自动识别规则使用 `clipboardRules`，详见 [Manifest 规范](/manifest)。
+剪贴板自动识别规则使用 `clipboardRules`，配置写在插件的 `manifest.json` 中。
