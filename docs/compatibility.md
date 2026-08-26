@@ -22,7 +22,7 @@
 - 新增 API 时，插件应使用 `api && api.method` 或可选链检测。
 - 删除或改变 API 返回值时，应先保留旧行为，并在本页记录迁移说明。
 - `enterAction.payload` 可能是文本，也可能是图片 data URL；处理前先判断 `type`。
-- `api.onPluginEnter`、`api.onPluginOut` 和所有 `window.atoolbox.on...` 都返回清理函数；组件卸载时必须调用。
+- `api.onPluginEnter`、`api.onPluginOut`、`api.onThemeChange` 等所有事件监听都返回清理函数；组件卸载时必须调用。
 - 不要依赖未在稳定插件 API 页面列出的 IPC 通道、内部事件名或窗口 DOM 结构。
 
 ## 发布前兼容性清单

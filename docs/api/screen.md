@@ -1,6 +1,6 @@
 # 屏幕
 
-AToolBox 当前向第三方插件开放全屏取色能力。
+AToolBox 向第三方插件开放全屏取色能力、显示器布局查询和坐标换算能力。
 
 ## screenColorPick
 
@@ -28,4 +28,30 @@ if (color) {
 }
 ```
 
-屏幕截图、显示器列表和坐标转换当前不属于第三方插件稳定 API。
+## 显示器与坐标
+
+```ts
+type ScreenPoint = { x: number; y: number }
+type ScreenRect = { x: number; y: number; width: number; height: number }
+type Display = {
+  id: number
+  bounds: ScreenRect
+  workArea: ScreenRect
+  workAreaSize: { width: number; height: number }
+  scaleFactor: number
+  rotation: number
+  touchSupport: string
+}
+
+api.getPrimaryDisplay(): Promise<Display>
+api.getAllDisplays(): Promise<Display[]>
+api.getCursorScreenPoint(): Promise<ScreenPoint>
+api.getDisplayNearestPoint(point: ScreenPoint): Promise<Display>
+api.getDisplayMatching(rect: ScreenRect): Promise<Display>
+api.screenToDipPoint(point: ScreenPoint): Promise<ScreenPoint>
+api.dipToScreenPoint(point: ScreenPoint): Promise<ScreenPoint>
+api.screenToDipRect(rect: ScreenRect): Promise<ScreenRect>
+api.dipToScreenRect(rect: ScreenRect): Promise<ScreenRect>
+```
+
+显示器信息只读；插件不能通过这些接口移动宿主窗口或执行屏幕截图。Electron 坐标转换在非 Windows 平台通常返回等价坐标。

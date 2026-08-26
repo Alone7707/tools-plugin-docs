@@ -6,9 +6,10 @@
 
 | 权限 | 允许的行为 | 推荐接口 | 风险提示 |
 | --- | --- | --- | --- |
-| `clipboard:read` | 读取剪贴板内容或声明剪贴板识别规则 | 由宿主触发 `initialText` / `enterAction` | 只处理插件必要的数据，不要长期保存 |
-| `clipboard:write` | 将结果写入系统剪贴板 | `api.copyText(text)` | 不要覆盖用户剪贴板而不提示 |
+| `clipboard:read` | 读取剪贴板内容或声明剪贴板识别规则 | `api.readClipboardText()`、`api.readClipboardImage()`、`initialText` / `enterAction` | 只处理插件必要的数据，不要长期保存 |
+| `clipboard:write` | 将结果写入系统剪贴板或清空剪贴板 | `api.copyText(text)`、`api.copyClipboardImage(dataUrl)`、`api.clearClipboard()` | 不要覆盖用户剪贴板而不提示 |
 | `network:fetch` | 通过浏览器 `fetch` 请求网络 | 标准 `fetch` | 目标服务必须支持 CORS，应披露数据去向 |
+| `file:dialog` | 打开系统文件选择或保存对话框 | `api.showOpenDialog()`、`api.showSaveDialog()` | 只读取用户主动选择的路径；宿主不替插件读写文件 |
 
 ## 能力分层
 

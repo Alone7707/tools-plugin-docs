@@ -21,6 +21,10 @@
 | `resolveAvatar` | `remoteUrl: string` | `Promise<string>` | 解析头像缓存地址 |
 | `onAvatarCacheReady` | `(payload: { sourceUrl, dataUrl })` | `() => void` | 头像缓存事件 |
 | `copyClipboard` | `text: string` | `Promise<boolean>` | 主进程剪贴板写入 |
+| `readClipboardText` | 无 | `Promise<string>` | 读取系统剪贴板文本 |
+| `readClipboardImage` | 无 | `Promise<string>` | 读取系统剪贴板图片 Data URL |
+| `clearClipboard` | 无 | `Promise<boolean>` | 清空系统剪贴板 |
+| `copyClipboardImage` | `dataUrl: string` | `Promise<boolean>` | 写入系统剪贴板图片 |
 | `getDeveloperApplication` | 无 | `Promise<DeveloperApplicationState>` | 开发者申请页 |
 | `submitDeveloperApplication` | `{ plan, contactType, contact }` | `Promise<DeveloperApplicationState>` | 开发者申请页 |
 | `listFeedback` | 无 | `Promise<FeedbackListState>` | 反馈页 |
@@ -99,10 +103,20 @@
 | 方法 | 参数 | 返回值 | 适用范围 |
 | --- | --- | --- | --- |
 | `pickScreenColor` | 无 | `Promise<{ sRGBHex: string } \| null>` | 全屏取色流程 |
+| `getPrimaryDisplay` | 无 | `Promise<PluginDisplayInfo>` | 主屏幕几何信息 |
+| `getAllDisplays` | 无 | `Promise<PluginDisplayInfo[]>` | 全部屏幕几何信息 |
+| `getCursorScreenPoint` | 无 | `Promise<{ x, y }>` | 当前鼠标屏幕坐标 |
+| `getDisplayNearestPoint` | `{ x, y }` | `Promise<PluginDisplayInfo>` | 指定点最近屏幕 |
+| `getDisplayMatching` | `{ x, y, width, height }` | `Promise<PluginDisplayInfo>` | 指定矩形匹配屏幕 |
+| `screenToDipPoint` / `dipToScreenPoint` | `{ x, y }` | `Promise<{ x, y }>` | 屏幕像素与 DIP 点换算 |
+| `screenToDipRect` / `dipToScreenRect` | `{ x, y, width, height }` | `Promise<{ x, y, width, height }>` | 屏幕像素与 DIP 矩形换算 |
 | `sampleScreenPick` | `{ x, y }` | `Promise<{ width, height, rgba, hex } \| null>` | 取色覆盖窗内部 |
 | `onScreenPickState` | `(state: { ready, x?, y? })` | `() => void` | 取色覆盖窗内部 |
 | `completeScreenPick` | `hex: string \| null` | 无 | 取色覆盖窗确认/取消 |
 | `showNotification` | `{ title, body? }` | `Promise<boolean>` | 系统通知 |
+| `showOpenDialog` | `PluginOpenDialogOptions` | `Promise<string[]>` | 文件选择对话框；插件 API 需 `file:dialog` |
+| `showSaveDialog` | `PluginSaveDialogOptions` | `Promise<string>` | 文件保存对话框；插件 API 需 `file:dialog` |
+| `shellBeep` | 无 | `Promise<boolean>` | 系统提示音 |
 | `showFloatImage` | `dataUrl: string` | `Promise<boolean>` | 创建置顶图片窗 |
 | `getFloatImageData` | 无 | `Promise<string>` | 悬浮图片窗读取自身内容 |
 | `resizeFloatImage` | `{ width, height }` | 无 | 悬浮图片窗等比缩放 |

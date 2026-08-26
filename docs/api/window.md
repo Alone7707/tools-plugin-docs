@@ -1,6 +1,31 @@
 # 窗口
 
-窗口 API 用于隐藏主窗口、退出插件、打开独立窗口、跨插件跳转和控制宿主标题栏。
+窗口 API 用于显示或隐藏主窗口、退出插件、调整高度、打开独立窗口、跨插件跳转和控制宿主标题栏。
+
+## showMainWindow
+
+显示并聚焦 AToolBox 主窗口。返回 `false` 表示当前宿主没有可用主窗口。
+
+```ts
+api.showMainWindow(): Promise<boolean>
+```
+
+## setExpendHeight
+
+调整主窗口内容高度。方法名沿用兼容 API 的拼写；独立窗口调用返回 `0`。
+
+```ts
+api.setExpendHeight(
+  height: number,
+  options?: { minimumHeight?: number; animate?: boolean; durationMs?: number }
+): Promise<number>
+```
+
+```js
+await api.setExpendHeight(560, { minimumHeight: 420, animate: true })
+```
+
+`height` 会由宿主限制在当前屏幕可用范围内，返回值是实际落地的高度。
 
 ## hideMainWindow
 
@@ -66,6 +91,16 @@ api.isDetachedWindow(): boolean
 ```js
 const detached = Boolean(api && api.isDetachedWindow && api.isDetachedWindow())
 ```
+
+## getWindowType
+
+读取当前插件窗口类型。
+
+```ts
+api.getWindowType(): 'main' | 'detach'
+```
+
+`'main'` 表示插件运行在主窗口工作区，`'detach'` 表示运行在可调整尺寸的独立窗口。
 
 ## redirect
 

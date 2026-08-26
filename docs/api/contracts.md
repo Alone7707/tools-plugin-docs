@@ -27,8 +27,8 @@ type PluginEnterAction = {
 ```js
 /** 订阅主题状态并在组件销毁时移除。 */
 function subscribeTheme(api, onTheme) {
-  if (!api || !api.onPluginEnter) return () => {}
-  const removeListener = api.onPluginEnter(onTheme)
+  if (!api || !api.onThemeChange) return () => {}
+  const removeListener = api.onThemeChange(onTheme)
   // 监听器清理函数。
   return removeListener
 }
@@ -40,7 +40,10 @@ function subscribeTheme(api, onTheme) {
 
 - Electron IPC 失败会由 preload 去掉通道名和包装错误，只保留可读的首行错误信息后重新抛出。
 - API 返回 `boolean` 时，`false` 表示动作未完成或被宿主拒绝；不要把它当作异常字符串。
+- 剪贴板方法未获得对应权限时不会抛错，读取返回空字符串，写入返回 `false`。
 - `screenColorPick` 取消返回 `null`；`api.screenColorPick` 将主进程 `{ sRGBHex }` 转换为 `{ hex }`。
+- 原生文件对话框取消时分别返回空数组和空字符串；未声明 `file:dialog` 时不弹框。
+- 显示器查询与坐标换算只返回几何信息，不授予截图、窗口移动或文件读写权限。
 - 远程入口加载失败会在宿主显示错误和“重新加载”操作，插件本身无法绕过入口校验。
 
 ## 与标准浏览器能力的关系

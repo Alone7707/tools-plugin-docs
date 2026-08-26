@@ -20,7 +20,7 @@
 | `keywords` | 最多 10 项，单项最多 30 字符，用于搜索 |
 | `tags` | 最多 10 项，单项最多 30 字符，用于展示 |
 | `icon` | 最多 8 字符的字符/emoji，或最多 300 字符的 http(s) URL |
-| `permissions` | 只能使用受支持的权限白名单 |
+| `permissions` | 只能使用 `clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog` |
 | `features` | 最多 12 个功能点，每项可声明 `code` 和 `cmds` |
 | `clipboardRules` | 最多 8 条剪贴板识别规则 |
 | `config` | 最多 20 个键，值只能是字符串、数字或布尔值 |

@@ -28,6 +28,28 @@ type PluginDetachWindowOptions = {
   width?: number
   height?: number
 }
+
+type PluginInfo = {
+  code: string
+  name: string
+  version: string
+  type: 'builtin' | 'local' | 'remote'
+}
+
+type PluginTheme = 'light' | 'dark'
+
+type PluginDialogFilter = { name: string; extensions: string[] }
+type PluginOpenDialogOptions = {
+  title?: string
+  defaultPath?: string
+  buttonLabel?: string
+  filters?: PluginDialogFilter[]
+  properties?: Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles'>
+}
+type PluginSaveDialogOptions = { title?: string; defaultPath?: string; buttonLabel?: string; filters?: PluginDialogFilter[] }
+type PluginScreenPoint = { x: number; y: number }
+type PluginScreenRect = { x: number; y: number; width: number; height: number }
+type PluginDisplayInfo = { id: number; bounds: PluginScreenRect; workArea: PluginScreenRect; workAreaSize: { width: number; height: number }; scaleFactor: number; rotation: number; touchSupport: string }
 ```
 
-完整声明包含 `AToolBoxPluginApi`、JSON 存储、字符串存储、进入/退出事件和独立窗口参数。插件组件仍应把 `api` 视为可空值，因为浏览器预览或非宿主加载环境不会提供它。
+完整声明包含 `AToolBoxPluginApi`、剪贴板、运行环境、主题事件、JSON 存储、字符串存储、进入/退出事件和独立窗口参数。插件组件仍应把 `api` 视为可空值，因为浏览器预览或非宿主加载环境不会提供它。

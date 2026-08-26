@@ -5,7 +5,7 @@
 ```bash
 # 在 C:/Work/tools-plugin-docs 目录执行
 pnpm install
-pnpm dev
+pnpm dev # http://localhost:3001
 pnpm build
 pnpm preview
 ```

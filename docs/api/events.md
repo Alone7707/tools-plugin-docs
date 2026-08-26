@@ -57,6 +57,41 @@ const removeOut = api && api.onPluginOut
   : null
 ```
 
+## onPluginDetach
+
+监听当前插件成功分离为独立窗口。回调在窗口创建成功后触发，独立窗口中的调用会返回 `false`。
+
+```ts
+api.onPluginDetach(callback: () => void): () => void
+```
+
+## onThemeChange
+
+监听宿主最终生效的明暗主题。注册时会先收到一次当前主题，后续应用设置或系统主题变化都会触发。
+
+```ts
+api.onThemeChange(callback: (theme: 'light' | 'dark') => void): () => void
+```
+
+```js
+const removeTheme = api && api.onThemeChange
+  ? api.onThemeChange((theme) => {
+      document.documentElement.dataset.theme = theme
+    })
+  : null
+```
+
+## onWindowShow / onWindowHide
+
+监听主窗口显示和隐藏。独立窗口中不会把独立窗口的原生显示状态转换为这两个事件。
+
+```ts
+api.onWindowShow(callback: () => void): () => void
+api.onWindowHide(callback: () => void): () => void
+```
+
+适合暂停轮询、恢复焦点或刷新一次轻量数据；回调中不要执行高频网络任务。
+
 ## PluginEnterAction
 
 ```ts
