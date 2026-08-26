@@ -1,0 +1,30 @@
+{
+  "code": "word_counter_example",
+  "name": "字数统计示例",
+  "version": "1.0.0",
+  "description": "演示 AToolBox 稳定插件 API 的文本统计工具",
+  "author": "AToolBox Developer",
+  "entry": "index.js",
+  "runtime": "vue",
+  "category": "效率办公",
+  "keywords": ["word", "count", "字数", "统计"],
+  "tags": ["文本", "示例"],
+  "icon": "字",
+  "permissions": ["clipboard:write"],
+  "features": [
+    {
+      "name": "字数统计",
+      "description": "统计字符数、单词数和行数",
+      "code": "count",
+      "cmds": ["字数", "word count", { "type": "over", "minLength": 1 }]
+    }
+  ],
+  "clipboardRules": [],
+  "config": {
+    "showWords": true,
+    "placeholder": "输入文本，或从搜索框带入内容"
+  },
+  "changelog": [
+    { "version": "1.0.0", "notes": "首个示例版本" }
+  ]
+}
