@@ -4,19 +4,7 @@
 
 ## 下载
 
-- [下载插件模板 ZIP](/templates/plugin-example.zip)
-- [manifest.json](/templates/plugin-example/manifest.json)
-- [index.js](/templates/plugin-example/index.js)
-- [README.md](/templates/plugin-example/README.md)
-
-解压后目录结构如下：
-
-```text
-plugin-example/
-├── manifest.json
-├── index.js
-└── README.md
-```
+[**插件模板 ZIP**](https://tools-plugin-docs-ign4.vercel.app/templates/plugin-example.zip.html)
 
 ## 使用
 
