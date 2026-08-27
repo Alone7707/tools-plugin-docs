@@ -13,7 +13,7 @@ AToolBox 插件由宿主动态加载，负责界面和业务逻辑；复制、�
 - 安装并登录 AToolBox 客户端。
 - 准备支持 JavaScript 的代码编辑器。
 - 了解基础的 JavaScript、HTML、CSS 和 Vue 3。
-- 下载[插件模板 ZIP](/example)。
+- 下载[空白插件模板](/example)；需要查询能力时可同时下载 API 示例。
 - 在客户端申请插件开发者资格。
 
 ## 创建插件工程
