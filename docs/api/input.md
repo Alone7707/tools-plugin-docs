@@ -6,24 +6,26 @@ AToolBox 不提供模拟键盘输入 API。插件输入来自组件 props 和进
 
 插件打开时带入的初始文本，没有内容时为空字符串。
 
-```js
-export default {
-  props: {
-    initialText: { type: String, default: '' }
-  }
-}
+```vue
+<script setup>
+defineProps({
+  /** 插件打开时带入的初始文本。 */
+  initialText: { type: String, default: '' }
+})
+</script>
 ```
 
 ## enterAction
 
 描述本次进入插件的功能编码、触发方式和载荷。
 
-```js
-export default {
-  props: {
-    enterAction: { type: Object, default: null }
-  }
-}
+```vue
+<script setup>
+defineProps({
+  /** 当前进入动作。 */
+  enterAction: { type: Object, default: null }
+})
+</script>
 ```
 
 ## 处理后续输入

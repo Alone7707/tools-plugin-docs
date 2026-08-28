@@ -5,7 +5,7 @@ AToolBox 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在
 ## 先记住三条边界
 
 1. 入口必须 `export default` 一个 Vue 组件。
-2. Vue 从 `window.Vue` 获取，不要在插件包中重复打包 Vue。
+2. 源码使用 Vue SFC 与普通 JavaScript，Vite 构建时将 Vue 映射到宿主 `window.Vue`，不会重复打包 Vue。
 3. 宿主能力通过 `api` prop 传入；优先使用 [受控插件 API](/api/plugin-api)，不要把 `window.atoolbox` 当作第三方稳定 API。
 
 ## 开发流程
@@ -14,9 +14,11 @@ AToolBox 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在
 | --- | --- |
 | 1. 下载插件模板 | [下载空白模板或 API 示例](/example) |
 | 2. 开发 | [编写插件代码](/getting-started) |
+| manifest.json 字段 | [查看清单字段参考](/manifest) |
 | 3. 选择插件 | [登记插件目录](/select-plugin) |
 | 4. 调试 | [打开插件并重新加载](/debugging) |
-| 5. 到开发者后台上传插件 | [上传插件](/release) |
+| 5. 构建插件包 | [生成正式 dist 产物](/build-plugin) |
+| 6. 到开发者后台上传插件 | [上传构建后的 dist](/release) |
 
 ## API 参考
 

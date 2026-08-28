@@ -26,15 +26,17 @@
 
 `api.getWindowType()` 可区分主窗口和独立窗口，返回 `'main'` 或 `'detach'`。`api.isDev()` 可判断当前是否通过开发者专区本地调试。
 
-## 目录约束
+## 开发目录与交付目录
 
 ```text
 my_plugin/
-├── manifest.json       # 必需：元数据和运行配置
-├── index.js            # 必需：ESM Vue 入口
-├── helper.mjs          # 可选：入口相对路径导入
-├── style.css           # 可选：插件私有样式
-└── assets/             # 可选：图标、截图和静态资源
+├── manifest.json
+├── package.json
+├── vite.config.js
+├── src/                # .vue 与 .js 开发源码
+└── dist/               # 客户端选择与后台上传目录
+    ├── manifest.json   # 必需：元数据和运行配置
+    └── index.js        # 必需：构建后的 ESM Vue 入口
 ```
 
 上传包限制由服务端强制执行：最多 20 个文件，单文件不超过 512 KB，总大小不超过 2 MB，路径最多 3 层。扩展名必须属于 `.js`、`.mjs`、`.json`、`.css`、`.md`、`.svg`、`.txt`、`.png`、`.jpg`、`.jpeg`、`.webp`、`.gif`。

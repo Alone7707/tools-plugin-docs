@@ -10,17 +10,19 @@ pnpm build
 pnpm preview
 ```
 
-站点内容位于 `docs/`，线上 API 基地址为 [https://a-tools.cc.cd](https://a-tools.cc.cd)，插件后台为 [https://tools.770733914.xyz/admin](https://tools.770733914.xyz/admin)。
+站点内容位于 `docs/`，线上 API 基地址为 [https://a-tools.cc.cd](https://a-tools.cc.cd)，插件后台为 [https://a-tools.cc.cd/admin](https://a-tools.cc.cd/admin)。
 
-本地调试由 AToolBox 客户端动态托管；线上 API 使用 `https://a-tools.cc.cd`，后台管理使用 `https://tools.770733914.xyz/admin`。
+本地调试由 AToolBox 客户端动态托管；发布前必须执行 `pnpm build`，后台只上传构建后的 `dist` 目录。
 
 ## 页面范围
 
 - `example.md`：1. 下载插件模板。
 - `getting-started.md`：2. 开发。
+- `manifest.md`：插件 `manifest.json` 全字段参考。
 - `select-plugin.md`：3. 选择插件。
 - `debugging.md`：4. 调试。
-- `release.md`：5. 到开发者后台上传插件。
+- `build-plugin.md`：5. 构建插件包。
+- `release.md`：6. 到开发者后台上传插件。
 - `api/plugin-api.md`：API 分类总览。
 - `api/events.md`、`window.md`、`copy.md`、`input.md`：事件、窗口、复制和输入 API。
 - `api/system.md`、`screen.md`、`user.md`：系统、屏幕和用户 API。

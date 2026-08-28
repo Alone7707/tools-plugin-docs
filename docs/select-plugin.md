@@ -1,6 +1,6 @@
 # 3. 选择插件
 
-代码开发完成后，在 AToolBox 客户端选择插件根目录，让客户端登记本地插件并生成调试入口。
+代码开发完成后，先运行 `pnpm dev` 或 `pnpm build` 生成 `dist`，再在 AToolBox 客户端选择该目录，让客户端登记本地插件并生成调试入口。
 
 ## 申请开发者资格
 
@@ -10,18 +10,19 @@
 
 ## 选择插件目录
 
-打开「个人中心 → 开发者专区」，选择包含 `manifest.json` 的插件根目录。也可以将插件目录或目录中的 `manifest.json` 拖入窗口。
+打开「个人中心 → 开发者专区」，选择包含构建产物 `manifest.json` 的 `dist` 目录。也可以将 `dist` 目录或其中的 `manifest.json` 拖入窗口。
 
 ```text
 my_plugin/
-├── manifest.json
-└── index.js
+└── dist/
+    ├── manifest.json
+    └── index.js
 ```
 
 选择的目录必须满足：
 
-- `manifest.json` 位于插件根目录。
-- `manifest.entry` 指向根目录内真实存在的 `.js` 或 `.mjs` 文件。
+- `manifest.json` 位于所选 `dist` 目录根部。
+- `manifest.entry` 指向 `dist` 内真实存在的 `.js` 或 `.mjs` 文件。
 - 入口是原生 ESM，并默认导出 Vue 组件。
 - 不依赖 Node.js、Electron 主进程或 `require`。
 

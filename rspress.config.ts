@@ -13,7 +13,8 @@ const siteConfigOptions = {
       { text: '2. 开发', link: '/getting-started' },
       { text: '3. 选择插件', link: '/select-plugin' },
       { text: '4. 调试', link: '/debugging' },
-      { text: '5. 到开发者后台上传插件', link: '/release' },
+      { text: '5. 构建插件包', link: '/build-plugin' },
+      { text: '6. 到开发者后台上传插件', link: '/release' },
       { text: 'API 参考', link: '/api/plugin-api' }
     ],
     sidebar: {
@@ -23,9 +24,11 @@ const siteConfigOptions = {
           items: [
             { text: '1. 下载插件模板', link: '/example' },
             { text: '2. 开发', link: '/getting-started' },
+            { text: 'manifest.json 字段', link: '/manifest' },
             { text: '3. 选择插件', link: '/select-plugin' },
             { text: '4. 调试', link: '/debugging' },
-            { text: '5. 到开发者后台上传插件', link: '/release' }
+            { text: '5. 构建插件包', link: '/build-plugin' },
+            { text: '6. 到开发者后台上传插件', link: '/release' }
           ]
         },
         {

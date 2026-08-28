@@ -2,12 +2,14 @@
 
 插件通过组件的 `api` prop 获取 AToolBox 宿主能力。`api` 由宿主按插件 `code` 创建，每个插件实例的存储空间相互隔离。
 
-```js
-export default {
-  props: {
-    api: { type: Object, default: null }
-  }
-}
+```vue
+<script setup>
+const props = defineProps({
+  /** 宿主公开插件 API。 */
+  api: { type: Object, default: null }
+})
+// 宿主传入的插件运行参数。
+</script>
 ```
 
 浏览器预览、加载失败恢复等场景中 `api` 可能为 `null`，每次调用前都要判断对象和方法是否存在。

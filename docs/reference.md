@@ -3,11 +3,13 @@
 ## 第三方插件交付链路
 
 ```text
-创建插件目录
+创建 Vue + Vite 插件工程
   ↓
-本地登记与调试
+持续构建 dist，并在客户端登记调试
   ↓
-上传 manifest + 入口文件
+执行 pnpm build 生成正式 dist 插件包
+  ↓
+上传整个 dist 目录
   ↓
 服务端校验并生成草稿
   ↓
@@ -33,7 +35,7 @@
 ## 运行时硬约束
 
 - 入口模块必须是 ESM，并导出 Vue 组件。
-- Vue 由宿主挂载到 `window.Vue`，插件不可重复打包 Vue。
+- 源码可正常从 `vue` 导入 API；模板构建时映射到宿主 `window.Vue`，插件不可重复打包 Vue。
 - 插件运行在渲染层，不提供 `require`、`fs`、`electron` 或 `ipcRenderer`。
 - `api` 可能为空，必须按能力检测后调用。
 - 版本目录不可变，代码或清单发生变化时必须递增 `version`。
