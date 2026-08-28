@@ -28,9 +28,6 @@ my_plugin/
 ├── src/
 │   ├── App.vue
 │   └── main.js
-└── dist/
-    ├── manifest.json
-    └── index.js
 ```
 
 安装依赖并开始构建：

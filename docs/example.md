@@ -1,6 +1,6 @@
 # 1. 下载插件模板
 
-根据开发目标选择空白模板或完整 API 示例。两个压缩包都包含 Vue 源码、构建配置和示例产物；修改源码后必须重新构建，不能直接上传模板自带的 `dist`。
+根据开发目标选择空白模板或完整 API 示例。空白模板只包含源码和构建配置；API 示例另附可参考的宿主能力代码。`dist` 由构建命令生成，不随空白模板提供。
 
 ## 下载
 
@@ -25,4 +25,4 @@
 
 完成模板下载后，不要直接上传。开发、调试完成后执行 `pnpm build`，最终只上传重新生成的 `dist` 目录。
 
-两个下载包都使用标准 Vue SFC 开发。首次开发需在插件目录执行 `pnpm install`；构建后的 `dist/index.js` 使用宿主提供的 `window.Vue`，不能使用 Node.js、Electron 或 `require`。
+两个下载包都使用标准 Vue SFC 开发。首次开发需在插件目录执行 `pnpm install`；执行 `pnpm build` 后生成的 `dist/index.js` 使用宿主提供的 `window.Vue`，不能使用 Node.js、Electron 或 `require`。
