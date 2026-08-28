@@ -20,12 +20,6 @@ const siteConfigOptions = {
     sidebar: {
       '/': [
         {
-          text: '说明',
-          items: [
-            { text: 'manifest.json 字段', link: '/manifest' }
-          ]
-        },
-        {
           text: '开发流程',
           items: [
             { text: '1. 下载插件模板', link: '/example' },
@@ -49,6 +43,12 @@ const siteConfigOptions = {
             { text: '用户', link: '/api/user' },
             { text: '数据存储', link: '/api/db' },
             { text: '动态指令', link: '/api/features' }
+          ]
+        },
+        {
+          text: '说明',
+          items: [
+            { text: 'manifest.json 字段', link: '/manifest' }
           ]
         }
       ]
