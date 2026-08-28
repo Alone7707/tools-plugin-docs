@@ -20,11 +20,16 @@ const siteConfigOptions = {
     sidebar: {
       '/': [
         {
+          text: '说明',
+          items: [
+            { text: 'manifest.json 字段', link: '/manifest' }
+          ]
+        },
+        {
           text: '开发流程',
           items: [
             { text: '1. 下载插件模板', link: '/example' },
             { text: '2. 开发', link: '/getting-started' },
-            { text: 'manifest.json 字段', link: '/manifest' },
             { text: '3. 选择插件', link: '/select-plugin' },
             { text: '4. 调试', link: '/debugging' },
             { text: '5. 构建插件包', link: '/build-plugin' },
