@@ -14,7 +14,6 @@ AToolBox 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在
 | --- | --- |
 | 1. 下载插件模板 | [下载空白模板或 API 示例](/example) |
 | 2. 开发 | [编写插件代码](/getting-started) |
-| manifest.json 字段 | [查看清单字段参考](/manifest) |
 | 3. 选择插件 | [登记插件目录](/select-plugin) |
 | 4. 调试 | [打开插件并重新加载](/debugging) |
 | 5. 构建插件包 | [生成正式 dist 产物](/build-plugin) |
