@@ -8,13 +8,13 @@
 
 最小可运行 Vue + Vite 插件工程，包含 `src/App.vue`、`src/main.js` 和构建配置，适合直接开始业务开发。
 
-[**下载空白插件模板 ZIP**](https://docs.a-tools.cc.cd/templates/plugin-template.zip.html)
+[**下载空白插件模板 ZIP**](https://docs.toolzen.top/templates/plugin-template.zip.html)
 
 ### 插件 API 示例
 
 按事件、窗口、剪贴板、系统、屏幕、插件身份和数据存储分类，提供全部第三方稳定公开 API 的调用示例。
 
-[**下载插件 API 示例 ZIP**](https://docs.a-tools.cc.cd/templates/plugin-api-example.zip.html)
+[**下载插件 API 示例 ZIP**](https://docs.toolzen.top/templates/plugin-api-example.zip.html)
 
 ## 使用
 
