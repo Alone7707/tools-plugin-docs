@@ -2,10 +2,10 @@ import { defineConfig } from 'rspress/config'
 
 const siteConfigOptions = {
   root: 'docs',
-  title: 'AToolBox 插件开发',
-  description: 'AToolBox Electron 插件开发者文档',
+  title: 'ToolZen 插件开发',
+  description: 'ToolZen Electron 插件开发者文档',
   lang: 'zh-CN',
-  icon: '/favicon.svg',
+  icon: '/favicon.png',
   themeConfig: {
     socialLinks: [],
     nav: [
@@ -54,7 +54,7 @@ const siteConfigOptions = {
       ]
     },
     footer: {
-      message: 'AToolBox 插件开发文档'
+      message: 'ToolZen 插件开发文档'
     }
   }
 }

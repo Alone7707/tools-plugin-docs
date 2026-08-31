@@ -1,6 +1,6 @@
 # 输入
 
-AToolBox 不提供模拟键盘输入 API。插件输入来自组件 props 和进入事件。
+ToolZen 不提供模拟键盘输入 API。插件输入来自组件 props 和进入事件。
 
 ## initialText
 

@@ -191,7 +191,7 @@ src/main.js  →  pnpm build  →  dist/index.js
     {
       "name": "URL",
       "pattern": "完整 HTTP(S) 地址",
-      "example": "https://a-tools.cc.cd",
+      "example": "https://toolzen.top",
       "action": "打开链接工具",
       "matchType": "url"
     }

@@ -22,7 +22,7 @@
 | `config` | `Record<string, string \| number \| boolean>` | manifest 默认配置与用户覆盖值合并后的结果 |
 | `initialText` | `string` | 搜索词、剪贴板识别文本或跳转载荷；没有时为空串 |
 | `enterAction` | `PluginEnterAction \| null` | 最近一次进入动作；包含 `code`、`type`、`payload` |
-| `api` | `AToolBoxPluginApi \| null` | 当前插件实例的受控宿主 API；浏览器直开预览时可能为空 |
+| `api` | `ToolZenPluginApi \| null` | 当前插件实例的受控宿主 API；浏览器直开预览时可能为空 |
 
 `api.getWindowType()` 可区分主窗口和独立窗口，返回 `'main'` 或 `'detach'`。`api.isDev()` 可判断当前是否通过开发者专区本地调试。
 

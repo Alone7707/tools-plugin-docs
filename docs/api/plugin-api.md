@@ -1,6 +1,6 @@
 # API 参考
 
-插件通过组件的 `api` prop 获取 AToolBox 宿主能力。`api` 由宿主按插件 `code` 创建，每个插件实例的存储空间相互隔离。
+插件通过组件的 `api` prop 获取 ToolZen 宿主能力。`api` 由宿主按插件 `code` 创建，每个插件实例的存储空间相互隔离。
 
 ```vue
 <script setup>
@@ -37,4 +37,4 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 - 原生文件对话框需要在 `manifest.permissions` 中声明 `file:dialog`；未声明时不会弹出系统窗口。
 - 剪贴板读写会按 `manifest.permissions` 做能力检查；未声明权限时返回空值或 `false`。
 - 插件不能直接调用 Node.js、Electron 主进程、`require` 或内部 IPC。
-- `window.atoolbox` 是宿主内部 bridge，不是第三方插件的稳定 API。
+- `window.toolzen` 是宿主内部 bridge，不是第三方插件的稳定 API。

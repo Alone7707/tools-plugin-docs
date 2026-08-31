@@ -4,13 +4,13 @@
 
 ## 插件是什么
 
-AToolBox 插件由宿主动态加载，负责界面和业务逻辑；复制、通知、存储、跳转与独立窗口等系统能力由宿主通过 `api` 提供。
+ToolZen 插件由宿主动态加载，负责界面和业务逻辑；复制、通知、存储、跳转与独立窗口等系统能力由宿主通过 `api` 提供。
 
 插件运行在 Electron 渲染层，但不提供 Node.js、Electron 主进程、`require`、`fs` 或任意 IPC 能力。
 
 ## 开发前准备
 
-- 安装并登录 AToolBox 客户端。
+- 安装并登录 ToolZen 客户端。
 - 准备支持 JavaScript 的代码编辑器。
 - 了解基础的 JavaScript、HTML、CSS 和 Vue 3。
 - 下载[空白插件模板](/example)；需要查询能力时可同时下载 API 示例。
@@ -93,7 +93,7 @@ const text = ref(props.initialText)
 </script>
 
 <template>
-  <main class="plugin-my-plugin">{{ text || '你好，AToolBox' }}</main>
+  <main class="plugin-my-plugin">{{ text || '你好，ToolZen' }}</main>
 </template>
 ```
 

@@ -27,7 +27,7 @@
 
 | 现象 | 处理 |
 | --- | --- |
-| 找不到 `window.Vue` | 通过 AToolBox 宿主打开 `dist`，不要直接在浏览器运行源码 |
+| 找不到 `window.Vue` | 通过 ToolZen 宿主打开 `dist`，不要直接在浏览器运行源码 |
 | 入口加载失败 | 检查 `entry` 路径、`export default` 和是否误写 TypeScript 语法 |
 | 修改后页面不变 | 确认 Vite watch 正在运行，再回开发者专区点击「重新加载」 |
 | 复制失败 | 优先使用 `api.copyText`，不要只依赖浏览器剪贴板 |

@@ -4,7 +4,7 @@
 
 ## showMainWindow
 
-显示并聚焦 AToolBox 主窗口。返回 `false` 表示当前宿主没有可用主窗口。
+显示并聚焦 ToolZen 主窗口。返回 `false` 表示当前宿主没有可用主窗口。
 
 ```ts
 api.showMainWindow(): Promise<boolean>

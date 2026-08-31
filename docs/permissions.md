@@ -17,7 +17,7 @@
 | --- | --- | --- |
 | 稳定插件 API | 组件 `api` prop | 是，推荐 |
 | 浏览器标准能力 | DOM、`fetch`、`localStorage`、`window.Vue` | 可用，遵守权限和兼容性；源码由 Vite 编译后运行 |
-| Electron preload bridge | `window.atoolbox` | 仅使用本文明确标为公开的能力；默认不依赖 |
+| Electron preload bridge | `window.toolzen` | 仅使用本文明确标为公开的能力；默认不依赖 |
 | 主进程 IPC | `ipcRenderer.invoke/send` 对应通道 | 禁止 |
 
 ## 审核关注点

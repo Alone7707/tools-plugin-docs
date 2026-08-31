@@ -43,4 +43,4 @@
 
 ## 事实来源
 
-运行时契约对应客户端的 `RemotePluginHost` 与插件 API 工厂；清单校验对应服务端的商店 manifest 校验逻辑；Electron bridge 对应 preload 的 `window.atoolbox` 暴露对象。本独立站点记录的是面向插件开发者的公开契约，不承诺内部 IPC 通道稳定。
+运行时契约对应客户端的 `RemotePluginHost` 与插件 API 工厂；清单校验对应服务端的商店 manifest 校验逻辑；Electron bridge 对应 preload 的 `window.toolzen` 暴露对象。本独立站点记录的是面向插件开发者的公开契约，不承诺内部 IPC 通道稳定。

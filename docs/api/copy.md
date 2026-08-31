@@ -1,6 +1,6 @@
 # 复制
 
-AToolBox 提供文本和图片剪贴板能力。图片使用 Data URL，所有读写能力都必须在 Manifest 中声明对应权限。
+ToolZen 提供文本和图片剪贴板能力。图片使用 Data URL，所有读写能力都必须在 Manifest 中声明对应权限。
 
 ## copyText
 

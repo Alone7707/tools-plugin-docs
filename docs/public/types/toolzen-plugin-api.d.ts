@@ -52,7 +52,7 @@ export type PluginScreenPoint = { x: number; y: number }
 export type PluginScreenRect = { x: number; y: number; width: number; height: number }
 export type PluginDisplayInfo = { id: number; bounds: PluginScreenRect; workArea: PluginScreenRect; workAreaSize: { width: number; height: number }; scaleFactor: number; rotation: number; touchSupport: string }
 
-export type AToolBoxPluginApi = {
+export type ToolZenPluginApi = {
   pluginCode: string
   /** 复制文本到系统剪贴板。 */
   copyText: (text: string) => Promise<boolean>
@@ -152,9 +152,9 @@ export type AToolBoxPluginApi = {
   isLinux: () => boolean
 }
 
-export type AToolBoxPluginProps = {
+export type ToolZenPluginProps = {
   config: Record<string, string | number | boolean>
   initialText: string
   enterAction: PluginEnterAction | null
-  api: AToolBoxPluginApi | null
+  api: ToolZenPluginApi | null
 }

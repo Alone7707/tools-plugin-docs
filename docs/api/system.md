@@ -28,7 +28,7 @@ api.shellOpenExternal(url: string): Promise<boolean>
 
 ```js
 if (api && api.shellOpenExternal) {
-  await api.shellOpenExternal('https://a-tools.cc.cd/')
+  await api.shellOpenExternal('https://toolzen.top/')
 }
 ```
 

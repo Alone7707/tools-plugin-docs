@@ -1,6 +1,6 @@
 # 动态指令
 
-AToolBox 的动态指令由 `manifest.json` 中的 `features[].cmds` 声明。插件运行时不提供修改指令的 API；需要调整指令时，修改 Manifest、递增版本并重新发布。
+ToolZen 的动态指令由 `manifest.json` 中的 `features[].cmds` 声明。插件运行时不提供修改指令的 API；需要调整指令时，修改 Manifest、递增版本并重新发布。
 
 ## 字符串指令
 

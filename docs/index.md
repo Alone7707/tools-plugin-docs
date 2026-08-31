@@ -1,12 +1,12 @@
-# AToolBox 插件开发
+# ToolZen 插件开发
 
-AToolBox 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在 Electron 的渲染层，但第三方代码不应直接依赖 Node.js、Electron 主进程或任意 IPC 通道。
+ToolZen 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在 Electron 的渲染层，但第三方代码不应直接依赖 Node.js、Electron 主进程或任意 IPC 通道。
 
 ## 先记住三条边界
 
 1. 入口必须 `export default` 一个 Vue 组件。
 2. 源码使用 Vue SFC 与普通 JavaScript，Vite 构建时将 Vue 映射到宿主 `window.Vue`，不会重复打包 Vue。
-3. 宿主能力通过 `api` prop 传入；优先使用 [受控插件 API](/api/plugin-api)，不要把 `window.atoolbox` 当作第三方稳定 API。
+3. 宿主能力通过 `api` prop 传入；优先使用 [受控插件 API](/api/plugin-api)，不要把 `window.toolzen` 当作第三方稳定 API。
 
 ## 开发流程
 
@@ -26,6 +26,6 @@ AToolBox 插件是由桌面端动态加载的 Vue 3 ESM 组件。插件运行在
 | 目标 | 文档 |
 | --- | --- |
 | 浏览 API 分类 | [API 参考](/api/plugin-api) |
-| 调用线上 HTTP API | [https://a-tools.cc.cd](https://a-tools.cc.cd) |
+| 调用线上 HTTP API | [https://toolzen.top](https://toolzen.top) |
 
 API 参考按能力分类展示宿主提供给插件的公开接口。

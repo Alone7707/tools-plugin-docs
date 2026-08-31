@@ -34,7 +34,7 @@ function subscribeTheme(api, onTheme) {
 }
 ```
 
-对 `window.atoolbox` 的 preload 事件也是同样约定：`onXxx(callback) => () => void`。
+对 `window.toolzen` 的 preload 事件也是同样约定：`onXxx(callback) => () => void`。
 
 ## 错误行为
 

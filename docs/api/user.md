@@ -1,6 +1,6 @@
 # 用户
 
-AToolBox 不向第三方插件开放用户账号、令牌或个人资料 API。插件只能读取当前插件自身的稳定编码。
+ToolZen 不向第三方插件开放用户账号、令牌或个人资料 API。插件只能读取当前插件自身的稳定编码。
 
 ## pluginCode
 
@@ -41,4 +41,4 @@ api.getPluginConfig<T extends Record<string, unknown>>(): T
 
 配置默认值来自 `manifest.config`，用户在客户端修改后的值会覆盖默认值。
 
-需要用户配置时，应使用插件自己的界面，并存入隔离的 [数据存储](/api/db)。不要要求或保存 AToolBox 账号密码、访问令牌等敏感信息。
+需要用户配置时，应使用插件自己的界面，并存入隔离的 [数据存储](/api/db)。不要要求或保存 ToolZen 账号密码、访问令牌等敏感信息。

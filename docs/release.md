@@ -1,17 +1,17 @@
 # 6. 到开发者后台上传插件
 
-完成开发和本地调试后，先执行 `pnpm build`，再到 AToolBox 开发者后台上传重新生成的 `dist` 插件包。
+完成开发和本地调试后，先执行 `pnpm build`，再到 ToolZen 开发者后台上传重新生成的 `dist` 插件包。
 
 ## 插件后台
 
-[打开 AToolBox 插件后台](https://a-tools.cc.cd/admin)
+[打开 ToolZen 插件后台](https://toolzen.top/admin)
 
 后台用于上传插件包、查看审核意见、提交审核和查看发布状态。客户端与后台使用同一套账号。
 
 ## 上传插件
 
 1. 在插件工程根目录执行 `pnpm build`。
-2. 登录[插件后台](https://a-tools.cc.cd/admin)。
+2. 登录[插件后台](https://toolzen.top/admin)。
 3. 打开「上传插件」页面，点击「上传插件」。
 4. 选择刚刚构建的 `dist` 目录，目录必须包含 `manifest.json` 和 `index.js`。
 5. 确认后台读取到插件名称、编码、版本和文件数量后点击「上传」。
