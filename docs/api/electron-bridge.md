@@ -2,7 +2,7 @@
 
 `window.toolzen` 是 preload 脚本通过 `contextBridge` 暴露给渲染层的完整对象。它服务于主窗口、插件窗口、开发者专区、个人中心和若干专用覆盖层，并不等同于第三方插件 SDK。
 
-新版代码统一使用 `window.toolzen`。`window.atoolbox` 仅作为旧版插件兼容别名保留，新插件不要继续依赖该名称。
+插件代码统一使用 `window.toolzen` 访问宿主桥接 API。
 
 第三方插件的稳定入口是 `api` prop。只有 [受控插件 API](/api/plugin-api) 明确列出的方法才应作为插件依赖。下表仍完整记录当前 bridge，便于维护者、宿主页面和内部插件查阅。
 
@@ -135,7 +135,7 @@
 | `onFloatBallUpdateState` | `(available: boolean)` | `() => void` | 悬浮球更新红点 |
 | `onShortcutClipboardImageCandidate` | `(dataUrl: string)` | `() => void` | 快捷键唤出图片候选 |
 
-第三方插件可直接使用 `api.screenColorPick` 和 `api.showNotification`。悬浮图片/悬浮球其余方法是专用窗口内部协议，不对远程插件开放。
+第三方插件可直接使用 `api.toast`、`api.screenColorPick` 和 `api.showNotification`。悬浮图片/悬浮球其余方法是专用窗口内部协议，不对远程插件开放。
 
 ## 设置、主题与窗口外壳
 

@@ -66,6 +66,8 @@ export type ToolZenPluginApi = {
   copyClipboardImage: (dataUrl: string) => Promise<boolean>
   /** 发送系统通知。 */
   showNotification: (body: string, title?: string) => Promise<boolean>
+  /** 在 ToolZen 宿主窗口显示短暂的全局 Toast。 */
+  toast: (message: string, durationMs?: number) => void
   /** 显示文件选择对话框；需要 file:dialog。 */
   showOpenDialog: (options?: PluginOpenDialogOptions) => Promise<string[]>
   /** 显示文件保存对话框；需要 file:dialog。 */

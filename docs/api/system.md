@@ -1,6 +1,22 @@
 # 系统
 
-系统 API 用于发送通知和打开外部链接。
+系统 API 用于显示主应用 Toast、发送系统通知和打开外部链接。
+
+## toast
+
+在 ToolZen 当前宿主窗口显示短暂的全局 Toast。主窗口和独立插件窗口都会显示在当前插件所在窗口内，不需要声明权限。
+
+```ts
+api.toast(message: string, durationMs?: number): void
+```
+
+```js
+if (api && api.toast) {
+  api.toast('处理完成', 3000)
+}
+```
+
+`durationMs` 为显示时长，单位是毫秒，省略时默认为 `3000`。Toast 适合反馈一次操作结果，不要用来持续输出日志。
 
 ## showNotification
 

@@ -24,7 +24,7 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 | [窗口](/api/window) | `hideMainWindow`、`showMainWindow`、`outPlugin`、`detachWindow`、`setExpendHeight`、`isDetachedWindow`、`getWindowType`、`redirect`、`setSubtitle`、`setDetachPayload`、`isDarkColors` |
 | [复制](/api/copy) | `copyText`、`readClipboardText`、`readClipboardImage`、`clearClipboard`、`copyClipboardImage` |
 | [输入](/api/input) | `initialText`、`enterAction`、后续输入处理 |
-| [系统](/api/system) | `showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
+| [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
 | [屏幕](/api/screen) | `screenColorPick`、显示器查询、鼠标坐标和 DIP 坐标转换 |
 | [用户](/api/user) | `pluginCode`、`getPluginInfo`、`getPluginConfig`、账号与插件身份边界 |
 | [数据存储](/api/db) | `db.get/put/remove`、`dbStorage.getItem/setItem/removeItem` |
