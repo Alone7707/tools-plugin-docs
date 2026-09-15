@@ -67,7 +67,7 @@
 | `entry` | `string` | 否 | `index.js` | 构建包内的入口文件相对路径，只允许 `.js` 或 `.mjs`，不能包含 `..` 或绝对路径；该文件必须实际存在于上传包中。 |
 | `runtime` | `string` | 否 | `vue` | 当前仅支持 `"vue"`。插件使用 Vue 3 组件运行，Vue 由宿主提供，不要重复打包。 |
 | `category` | `string` | 否 | `开发工具` | 商店分类，只能是 `开发工具`、`效率办公`、`媒体处理`、`系统工具` 之一。 |
-| `icon` | `string` | 否 | `◆` | 字符或 emoji 图标最多 8 个字符；也可以填写最多 300 个字符的 `http(s)` 图片地址。 |
+| `icon` | `string` | 否 | `◆` | 字符或 emoji 图标最多 8 个字符；也可以填写最多 300 个字符的 `http(s)` 图片地址，或包内图片的相对路径。详见下文。 |
 | `keywords` | `string[]` | 否 | `[]` | 搜索关键词，最多 10 项，每项最多 30 个字符。建议包含中英文同义词。 |
 | `tags` | `string[]` | 否 | `[]` | 商店详情页展示标签，最多 10 项，每项最多 30 个字符。 |
 | `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`。详见[权限与能力矩阵](/permissions)。 |
@@ -88,7 +88,9 @@ src/main.js  →  pnpm build  →  dist/index.js
 
 因此清单一般写 `"entry": "index.js"`，上传或调试时选择包含 `manifest.json` 和 `index.js` 的 `dist` 目录。
 
-### `icon` 的两种写法
+### `icon` 的三种写法
+
+字符或 emoji 图标：
 
 ```json
 {
@@ -96,13 +98,34 @@ src/main.js  →  pnpm build  →  dist/index.js
 }
 ```
 
+包内图片的相对路径（推荐，图片随插件包一起上传，不必自己找图床）：
+
+```json
+{
+  "icon": "icon.png"
+}
+```
+
+`http(s)` 外链图片：
+
 ```json
 {
   "icon": "https://example.com/assets/icon.png"
 }
 ```
 
-外链图标必须可被客户端直接访问。包内相对图片路径不作为 `icon` 的清单图标格式；需要随包提供图片时，请放入 `screenshots` 或使用字符/外链图标。
+包内相对路径的写法与 `screenshots` 一致：
+
+- 路径相对**包根目录**，与 `entry` 同一套写法，子目录也可以写（如 `assets/logo.svg`）。
+- 支持的扩展名：`.png`、`.jpg`、`.jpeg`、`.webp`、`.gif`、`.svg`、`.ico`。
+- 建议使用**正方形图片**：客户端按 42×42 显示（详情页 60×60），采用 `object-fit: cover`，非正方形会被裁切。
+- 上传后会自动转换为 `/store-packages/<code>/<version>/...` 形式的站内地址，客户端拿到的则是补全了域名的绝对地址。
+- 声明了包内路径但文件没有打进包时，图标会退回默认的 `◆`，不会显示为裂图。
+- 每个版本带自己的图标，修改图标后重新打包并递增 `version` 即可。
+
+外链图片必须能被客户端直接访问，否则商店卡片与启动器磁贴都会裂图——那是所有用户都要去加载的地址，请确保图床长期稳定。
+
+字符图标不参与包内路径解析：它最多 8 个字符，也不带图片扩展名，因此不会与相对路径混淆。
 
 ## `features` 功能点
 
@@ -233,7 +256,7 @@ src/main.js  →  pnpm build  →  dist/index.js
 
 - 包内相对路径必须指向上传包中真实存在的图片文件。
 - 上传后，包内路径会自动转换为 `/store-packages/<code>/<version>/...` 形式的站内地址。
-- 图片扩展名须在插件包白名单内，例如 `.png`、`.jpg`、`.jpeg`、`.webp`、`.gif`、`.svg`。
+- 图片扩展名须在插件包白名单内，例如 `.png`、`.jpg`、`.jpeg`、`.webp`、`.gif`、`.svg`、`.ico`。
 - 每个地址最多 500 个字符，最多 6 张图。
 
 ## `changelog` 更新记录
