@@ -21,7 +21,7 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 | 分类 | 公开能力 |
 | --- | --- |
 | [事件](/api/events) | `getEnterAction`、`onPluginEnter`、`onPluginOut`、`onPluginDetach`、`onThemeChange`、`onWindowShow`、`onWindowHide` |
-| [窗口](/api/window) | `hideMainWindow`、`showMainWindow`、`outPlugin`、`detachWindow`、`setExpendHeight`、`isDetachedWindow`、`getWindowType`、`redirect`、`setSubtitle`、`setDetachPayload`、`isDarkColors` |
+| [窗口](/api/window) | `hideMainWindow`、`showMainWindow`、`outPlugin`、`detachWindow`、`setExpendHeight`、`isDetachedWindow`、`isWindowActive`、`getWindowType`、`redirect`、`setSubtitle`、`setDetachPayload`、`isDarkColors` |
 | [复制](/api/copy) | `copyText`、`readClipboardText`、`readClipboardImage`、`clearClipboard`、`copyClipboardImage` |
 | [输入](/api/input) | `initialText`、`enterAction`、后续输入处理 |
 | [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |

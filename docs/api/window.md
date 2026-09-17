@@ -102,6 +102,28 @@ api.getWindowType(): 'main' | 'detach'
 
 `'main'` 表示插件运行在主窗口工作区，`'detach'` 表示运行在可调整尺寸的独立窗口。
 
+## isWindowActive
+
+判断这个插件的宿主窗口此刻是不是「正对着用户」：窗口已聚焦、可见、且未最小化。返回 `false` 就说明用户已经切到别的应用、把主窗口收起来了，或者把独立窗口最小化了。
+
+```ts
+api.isWindowActive(): Promise<boolean>
+```
+
+```js
+const active = api && api.isWindowActive ? await api.isWindowActive() : true
+if (!active) {
+  await api.showNotification('导出完成，共 128 条', '文本工作台')
+}
+```
+
+适合耗时任务收尾时使用：用户在等的时候会切走去干别的，跑完了得有个地方告诉他结果。配合 [showNotification](/api/system) 就是「干完了、但你没在看，所以弹系统通知」这套做法。
+
+两点需要留意：
+
+- 这是**窗口**级的答案。主窗口里用户点回启动器页面之后插件页会被卸载，此时窗口若仍是前台，答案依然是 `true`。插件页卸载后插件代码也不再运行，所以只有「界面已卸载、收尾逻辑仍在模块级状态里继续跑」这类插件才需要再结合自己的挂载状态判断。
+- 它返回 `Promise`。窗口状态由主进程掌握，这里拿到的是一次查询结果，不是本地状态变量。
+
 ## redirect
 
 打开另一个已安装插件，并把可选文本传给目标插件。

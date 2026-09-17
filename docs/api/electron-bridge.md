@@ -116,6 +116,7 @@
 | `onScreenPickState` | `(state: { ready, x?, y? })` | `() => void` | 取色覆盖窗内部 |
 | `completeScreenPick` | `hex: string \| null` | 无 | 取色覆盖窗确认/取消 |
 | `showNotification` | `{ title, body? }` | `Promise<boolean>` | 系统通知 |
+| `isWindowActive` | 无 | `Promise<boolean>` | 调用方窗口是否已聚焦、可见且未最小化 |
 | `showOpenDialog` | `PluginOpenDialogOptions` | `Promise<string[]>` | 文件选择对话框；插件 API 需 `file:dialog` |
 | `showSaveDialog` | `PluginSaveDialogOptions` | `Promise<string>` | 文件保存对话框；插件 API 需 `file:dialog` |
 | `shellBeep` | 无 | `Promise<boolean>` | 系统提示音 |

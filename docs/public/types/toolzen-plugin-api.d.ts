@@ -86,6 +86,8 @@ export type ToolZenPluginApi = {
   setExpendHeight: (height: number, options?: { minimumHeight?: number; animate?: boolean; durationMs?: number }) => Promise<number>
   /** 判断当前实例是否运行在独立窗口中。 */
   isDetachedWindow: () => boolean
+  /** 本插件的宿主窗口此刻是否处于激活状态（已聚焦、可见、未最小化）。 */
+  isWindowActive: () => Promise<boolean>
   /** 跳转到另一个已安装插件。 */
   redirect: (code: string, payload?: string) => void
   /** 读取当前进入动作。 */
