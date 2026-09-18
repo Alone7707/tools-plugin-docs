@@ -208,7 +208,7 @@ src/main.js  →  pnpm build  →  dist/index.js
       "name": "颜色值",
       "pattern": "HEX、RGB 或 HSL 颜色",
       "example": "#2f81f7",
-      "action": "打开取色器",
+      "action": "打开取色面板",
       "matchType": "color"
     },
     {
