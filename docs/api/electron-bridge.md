@@ -112,7 +112,7 @@
 | `getDisplayMatching` | `{ x, y, width, height }` | `Promise<PluginDisplayInfo>` | 指定矩形匹配屏幕 |
 | `screenToDipPoint` / `dipToScreenPoint` | `{ x, y }` | `Promise<{ x, y }>` | 屏幕像素与 DIP 点换算 |
 | `screenToDipRect` / `dipToScreenRect` | `{ x, y, width, height }` | `Promise<{ x, y, width, height }>` | 屏幕像素与 DIP 矩形换算 |
-| `sampleScreenPick` | `{ x, y }` | `Promise<{ width, height, rgba, hex } \| null>` | 取色覆盖窗内部 |
+| `sampleScreenPick` | `{ x, y }` | `Promise<{ width, height, rgba, hex, centerX, centerY } \| null>` | 取色覆盖窗内部 |
 | `onScreenPickState` | `(state: { ready, x?, y? })` | `() => void` | 取色覆盖窗内部 |
 | `completeScreenPick` | `hex: string \| null` | 无 | 取色覆盖窗确认/取消 |
 | `showNotification` | `{ title, body? }` | `Promise<boolean>` | 系统通知 |
