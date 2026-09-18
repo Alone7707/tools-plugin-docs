@@ -22,6 +22,7 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 | --- | --- |
 | [事件](/api/events) | `getEnterAction`、`onPluginEnter`、`onPluginOut`、`onPluginDetach`、`onThemeChange`、`onWindowShow`、`onWindowHide` |
 | [窗口](/api/window) | `hideMainWindow`、`showMainWindow`、`outPlugin`、`detachWindow`、`setExpendHeight`、`isDetachedWindow`、`isWindowActive`、`getWindowType`、`redirect`、`setSubtitle`、`setDetachPayload`、`isDarkColors` |
+| [快捷键](/api/shortcut) | `registerShortcut`、`unregisterShortcut` |
 | [复制](/api/copy) | `copyText`、`readClipboardText`、`readClipboardImage`、`clearClipboard`、`copyClipboardImage` |
 | [输入](/api/input) | `initialText`、`enterAction`、后续输入处理 |
 | [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
@@ -33,6 +34,7 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 ## 通用约定
 
 - 事件监听方法返回取消函数，组件卸载时必须调用。
+- 全局快捷键跟着插件实例走：插件退出时宿主自动注销，不需要在 `onPluginOut` 里额外收尾。
 - `Promise<boolean>` 返回 `false` 时表示动作未完成或被宿主拒绝。
 - 原生文件对话框需要在 `manifest.permissions` 中声明 `file:dialog`；未声明时不会弹出系统窗口。
 - 剪贴板读写会按 `manifest.permissions` 做能力检查；未声明权限时返回空值或 `false`。

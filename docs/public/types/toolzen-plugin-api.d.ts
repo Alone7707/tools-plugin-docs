@@ -88,6 +88,18 @@ export type ToolZenPluginApi = {
   isDetachedWindow: () => boolean
   /** 本插件的宿主窗口此刻是否处于激活状态（已聚焦、可见、未最小化）。 */
   isWindowActive: () => Promise<boolean>
+  /**
+   * 注册一个系统级全局快捷键，写法见 Electron Accelerator，例如 `'CommandOrControl+Shift+K'`。
+   *
+   * 成功返回 `true`。写法不合法、组合键已经归宿主自己的呼出快捷键或别的插件窗口所有、
+   * 或者系统里被别的应用占着时返回 `false`。至少要带一个修饰键：单键注册会把整个系统的那个键
+   * 抢走，宿主不受理。
+   *
+   * 快捷键跟着插件实例走：插件退出时宿主自动注销，插件不用在 `onPluginOut` 里额外收尾。
+   */
+  registerShortcut: (accelerator: string, callback: () => void) => Promise<boolean>
+  /** 注销全局快捷键；不传参数时注销本插件在这个窗口注册的全部快捷键。 */
+  unregisterShortcut: (accelerator?: string) => Promise<boolean>
   /** 跳转到另一个已安装插件。 */
   redirect: (code: string, payload?: string) => void
   /** 读取当前进入动作。 */

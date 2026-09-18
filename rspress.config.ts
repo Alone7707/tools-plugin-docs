@@ -36,6 +36,7 @@ const siteConfigOptions = {
             { text: 'API 总览', link: '/api/plugin-api' },
             { text: '事件', link: '/api/events' },
             { text: '窗口', link: '/api/window' },
+            { text: '快捷键', link: '/api/shortcut' },
             { text: '复制', link: '/api/copy' },
             { text: '输入', link: '/api/input' },
             { text: '系统', link: '/api/system' },

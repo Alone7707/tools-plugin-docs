@@ -117,6 +117,10 @@
 | `completeScreenPick` | `hex: string \| null` | 无 | 取色覆盖窗确认/取消 |
 | `showNotification` | `{ title, body? }` | `Promise<boolean>` | 系统通知 |
 | `isWindowActive` | 无 | `Promise<boolean>` | 调用方窗口是否已聚焦、可见且未最小化 |
+| `registerPluginShortcut` | `accelerator: string` | `Promise<{ ok, reason?, accelerator? }>` | 登记插件全局快捷键；原因见 `reason`（`invalid` / `reserved` / `taken` / `duplicate` / `unavailable`） |
+| `unregisterPluginShortcut` | `accelerator?: string` | `Promise<boolean>` | 注销当前窗口注册的插件全局快捷键；不传组合键时注销全部 |
+| `onPluginShortcutTriggered` | `(payload: { accelerator })` | `() => void` | 宿主触发了插件登记的全局快捷键 |
+| `onPluginShortcutReleased` | `(payload: { accelerator, reason })` | `() => void` | 宿主收回了插件登记的全局快捷键 |
 | `showOpenDialog` | `PluginOpenDialogOptions` | `Promise<string[]>` | 文件选择对话框；插件 API 需 `file:dialog` |
 | `showSaveDialog` | `PluginSaveDialogOptions` | `Promise<string>` | 文件保存对话框；插件 API 需 `file:dialog` |
 | `shellBeep` | 无 | `Promise<boolean>` | 系统提示音 |

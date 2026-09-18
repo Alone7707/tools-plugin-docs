@@ -41,6 +41,7 @@ function subscribeTheme(api, onTheme) {
 - Electron IPC 失败会由 preload 去掉通道名和包装错误，只保留可读的首行错误信息后重新抛出。
 - API 返回 `boolean` 时，`false` 表示动作未完成或被宿主拒绝；不要把它当作异常字符串。
 - 剪贴板方法未获得对应权限时不会抛错，读取返回空字符串，写入返回 `false`。
+- `registerShortcut` 注册不上时不抛错，返回 `false`；原因（写法不合法 / 被占用）写在插件控制台里。
 - `screenColorPick` 取消返回 `null`；`api.screenColorPick` 将主进程 `{ sRGBHex }` 转换为 `{ hex }`。
 - 原生文件对话框取消时分别返回空数组和空字符串；未声明 `file:dialog` 时不弹框。
 - 显示器查询与坐标换算只返回几何信息，不授予截图、窗口移动或文件读写权限。
