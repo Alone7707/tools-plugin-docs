@@ -27,7 +27,7 @@
 
 文件层单独成层：`file:read` 覆盖 `file.scan` / `file.exists` / `file.reveal`，`file:write` 覆盖 `file.grant` / `file.rename`；`clipboard:read` 同时也是 `readClipboardFiles` 的前提。
 
-需要说清楚实际执行方式：渲染层按声明拦截调用，未声明时 `file.scan` 返回空数组、`file.exists` 返回与输入等长的 `false` 数组、`file.reveal` 返回 `false`，`rename` 逐项返回 `permission-denied`，`grant` 在 `rejected` 里报 `permission-denied`，而不是抛异常。但写入的真正护栏不是权限字符串本身，而是宿主维护的**已授权路径集合**——`rename` 只受理本会话已登记进该集合的路径。宿主自动登记剪贴板文件、文件对话框选中的路径和粘贴进搜索框的文件；用户拖入插件自身拖放区的文件需要插件自己调用 `api.file.grant()`。这个集合不落盘、重启即清空。
+需要说清楚实际执行方式：渲染层按声明拦截调用，未声明时 `file.scan` 返回 `{ ok: false, code: 'NOT_SUPPORTED', entries: [] }`、`file.exists` 返回 `{ ok: false, code: 'NOT_SUPPORTED', exists: [...与输入等长的 false] }`、`file.reveal` 返回 `false`，`rename` 逐项返回 `NOT_SUPPORTED` 并在 `items[].reason` 里给 `permission-denied`，`grant` 返回 `{ ok: false, granted: [] }` 并在 `rejected` 里逐项报 `permission-denied`，而不是抛异常。但写入的真正护栏不是权限字符串本身，而是宿主维护的**已授权路径集合**——`rename` 只受理本会话已登记进该集合的路径。宿主自动登记剪贴板文件、文件对话框选中的路径和粘贴进搜索框的文件；用户拖入插件自身拖放区的文件需要插件自己调用 `api.file.grant()`。这个集合不落盘、重启即清空。
 
 ## 审核关注点
 

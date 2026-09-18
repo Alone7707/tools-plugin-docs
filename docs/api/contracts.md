@@ -50,10 +50,10 @@ function subscribeTheme(api, onTheme) {
 - `registerShortcut` 注册不上时不抛错，返回 `false`；原因（写法不合法 / 被占用）写在插件控制台里。
 - `screenColorPick` 取消返回 `null`；`api.screenColorPick` 将主进程 `{ sRGBHex }` 转换为 `{ hex }`。
 - 原生文件对话框取消时分别返回空数组和空字符串；未声明 `file:dialog` 时不弹框。
-- 文件读取接口未声明 `file:read` 时不抛错：`file.scan` 返回空数组、`file.reveal` 返回 `false`、`readClipboardFiles` 返回空数组；唯一的例外是 `file.exists`，它返回与输入**等长**的 `false` 数组，保持按下标对应。
-- `file.rename` 未声明 `file:write` 时逐项返回 `status: 'failed'`、`reason: 'permission-denied'`，整批调用本身不抛错；`file.grant` 则把这类路径写进 `rejected`，`reason` 为 `permission-denied`。授权范围之外的源路径不会被改动，只会计入 `not-granted`。
-- `file.rename` 的单项失败不会中断整批，每个条目各有 `status` 和 `reason` / `error`；一次调用超过 5000 项会直接报错。
-- `file.scan` 遇到不存在的路径也不抛错，返回 `exists: false` 且其余字段为零值的条目。
+- 文件读取接口未声明 `file:read` 时不抛错，返回空信封：`file.scan` 返回 `{ ok: false, code: 'NOT_SUPPORTED', entries: [], errors: [], truncated: false }`，`file.exists` 返回 `{ ok: false, code: 'NOT_SUPPORTED', exists: [...] }`（`exists` 仍是与输入**等长**的 `false` 数组，保持按下标对应），`file.reveal` 返回 `false`，`readClipboardFiles` 返回空数组。
+- `file.rename` 未声明 `file:write` 时逐项返回 `results[].ok === false`、`code: 'NOT_SUPPORTED'`，诊断口径 `items[].status` 为 `failed`、`reason` 为 `permission-denied`，整批调用本身不抛错；`file.grant` 则返回 `{ ok: false, granted: [] }`，并把这类路径逐项写进 `rejected`，`reason` 为 `permission-denied`。授权范围之外的源路径不会被改动，只会计入 `not-granted`。
+- `file.rename` 的单项失败不会中断整批，每个条目各有 `results[].code` / `items[].status` 和 `reason` / `error`；顶层 `ok` 只在全部成功时为 `true`，`code` 取第一条失败项的错误码；一次调用超过 5000 项会直接报错。
+- `file.scan` 遇到不存在的路径也不抛错：该路径进 `errors`，`code` 为 `ENOENT`，不会出现在 `entries` 里，也不影响其他条目的返回。
 - 显示器查询与坐标换算只返回几何信息，不授予截图、窗口移动或文件读写权限。
 - 远程入口加载失败会在宿主显示错误和“重新加载”操作，插件本身无法绕过入口校验。
 

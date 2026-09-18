@@ -149,15 +149,15 @@
 | 方法 | 参数 | 返回值 | 适用范围 |
 | --- | --- | --- | --- |
 | `readClipboardFiles` | 无 | `Promise<string[]>` | 读取剪贴板文件绝对路径；`api.readClipboardFiles` 的底层通道 |
-| `fileScan` | `{ paths, options? }` | `Promise<PluginFileEntry[]>` | 展开路径条目；对应 `api.file.scan` |
-| `fileExists` | `paths: string[]` | `Promise<boolean[]>` | 按下标返回存在性；对应 `api.file.exists` |
+| `fileScan` | `{ paths, options? }` | `Promise<PluginFileScanResult>` | 展开路径条目，返回 `{ ok, entries, errors, truncated }` 信封；对应 `api.file.scan` |
+| `fileExists` | `paths: string[]` | `Promise<PluginFileExistsResult>` | 按下标返回存在性（`exists` 数组与入参等长）；对应 `api.file.exists` |
 | `fileReveal` | `path: string` | `Promise<boolean>` | 在系统文件管理器中选中路径；对应 `api.file.reveal` |
 | `fileGrant` | `paths: string[]` | `Promise<PluginFileGrantResult>` | 登记本次会话的授权路径集合；对应 `api.file.grant` |
 | `fileRename` | `request: PluginFileRenameRequest` | `Promise<PluginFileRenameResult>` | 批量重命名；对应 `api.file.rename` |
 | `getDroppedPath` | `file: File` | `string` | 拖入文件反查绝对路径；`api.getPathForFile` 的底层调用（同上文开发者专区表格） |
 | `onShortcutClipboardFileCandidate` | `(callback: (paths: string[]) => void)` | `() => void` | 主进程事件：剪贴板现在持有这些文件，呼出时触发；`[]` 表示清空候选 |
 
-**bridge 层自己不做任何权限检查**：`file:read` / `file:write` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()` 和 `api.file.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)。
+**bridge 层自己不做任何权限检查**：`file:read` / `file:write` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()` 和 `api.file.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileScanResult`、`PluginFileExistsResult`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)。
 
 ## 设置、主题与窗口外壳
 

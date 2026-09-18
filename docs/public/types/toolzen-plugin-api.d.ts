@@ -55,61 +55,124 @@ export type PluginScreenRect = { x: number; y: number; width: number; height: nu
 export type PluginDisplayInfo = { id: number; bounds: PluginScreenRect; workArea: PluginScreenRect; workAreaSize: { width: number; height: number }; scaleFactor: number; rotation: number; touchSupport: string }
 
 export type PluginFileScanOptions = {
-  /** 是否把目录展开成其中的条目；递归最多 8 层，目录本身不再单独列出。 */
+  /** 是否继续往下钻子目录；默认 false（但目录本身一律展开一层），递归深度上限 8 层。 */
   recursive?: boolean
-  /** 按条目名匹配的简易 glob：* 不跨路径分隔符，** 跨路径分隔符，? 匹配一个字符。 */
+  /** 把展开出来的子目录也作为条目返回；默认 false，只回文件。被扫描的根目录自己不会作为条目出现。 */
+  includeDirectories?: boolean
+  /** 是否包含以点开头的隐藏项；默认 true。 */
+  includeHidden?: boolean
+  /** 宿主扩展：简易 glob（* 不跨目录、** 跨目录、? 单字符）。 */
   match?: string
-  /** 返回条目的上限，默认 2000，硬上限 10000。 */
+  /** 返回条目的上限，默认 20000，最大 50000；撞上限时 truncated 为 true。 */
   limit?: number
 }
 
 export type PluginFileEntry = {
+  /** 绝对路径。 */
   path: string
+  /** 父目录绝对路径。 */
+  directory: string
+  /** 含扩展名的文件名。 */
   name: string
+  /** 不带扩展名的主名；无扩展名时等于 name。 */
+  stem: string
+  /** 扩展名含点；目录与无扩展名文件为空串。 */
+  extension: string
   isDirectory: boolean
-  /** 目录恒为 0。 */
-  sizeBytes: number
+  /** 字节；目录为 0。 */
+  size: number
   /** 毫秒时间戳。 */
   modifiedAt: number
-  /** 路径不存在时为 false，其余字段为零值。 */
+  /** 毫秒时间戳；取不到时与 modifiedAt 相同。 */
+  createdAt: number
+  /** 以点开头的隐藏项。 */
+  hidden: boolean
+  /** 这条路径当时是否存在（缺失的路径不会进 entries）。 */
   exists: boolean
+}
+
+export type PluginFileScanError = {
+  path: string
+  /** 读不动的路径对应的错误码，例如 EACCES / ENOENT。 */
+  code: string
+  message?: string
+}
+
+export type PluginFileScanResult = {
+  ok: boolean
+  entries: PluginFileEntry[]
+  /** 读不动的路径（缺失路径在这里，code 为 ENOENT），个别路径失败不影响其他条目。 */
+  errors: PluginFileScanError[]
+  truncated: boolean
+  code?: string
+}
+
+export type PluginFileExistsResult = {
+  ok: boolean
+  /** 与入参按下标一一对应；未声明 file:read 时是等长的 false 数组。 */
+  exists: boolean[]
+  code?: string
 }
 
 export type PluginFileRenameRequest = {
   items: Array<{ from: string; to: string }>
-  /** 只预览计划结果，不改动磁盘；推荐先用它给用户确认。 */
+  /** 只预检不落盘；推荐先用它给用户确认。 */
   dryRun?: boolean
   /** onConflict: 'overwrite' 的别名。 */
   allowOverwrite?: boolean
-  /** 目标已存在时的策略，默认 'error'。 */
+  /** 目标已存在时的策略，默认 'error'：目标存在判该项失败。 */
   onConflict?: 'error' | 'skip' | 'overwrite'
+  /** 单项失败是否继续，默认 true。 */
+  continueOnError?: boolean
 }
 
+export type PluginFileRenameResultItem = {
+  from: string
+  to: string
+  ok: boolean
+  code?: string
+  message?: string
+}
+
+/** 宿主更细的诊断口径，与 results 并存。 */
 export type PluginFileRenameItem = {
   from: string
   to: string
+  /** planned = dryRun 预检通过。 */
   status: 'planned' | 'applied' | 'skipped' | 'failed'
+  /** permission-denied | invalid | missing | not-granted | cross-directory | same-path | target-exists | target-directory | failed */
   reason?: string
+  /** 系统调用报错的原文。 */
   error?: string
 }
 
 export type PluginFileRenameResult = {
+  /** 全部成功才为 true。 */
+  ok: boolean
   dryRun: boolean
+  /** 与请求顺序一一对应。 */
+  results: PluginFileRenameResultItem[]
+  succeeded: number
+  failed: number
   items: PluginFileRenameItem[]
-  /** 真正执行成功的重命名，按执行顺序；把 from / to 对调再调一次即可撤销。 */
+  /** 真正落地的映射，按执行顺序；反着再调一次 rename（from / to 对调）就是撤销。 */
   applied: Array<{ from: string; to: string }>
+  /** 第一条失败项的错误码。 */
+  code?: string
 }
 
 export type PluginFileGrantResult = {
+  ok: boolean
   granted: string[]
+  /** 被拒的路径；未声明 file:write 时逐项为 permission-denied。 */
   rejected: Array<{ path: string; reason: string }>
 }
 
 export type PluginFileApi = {
-  /** 展开一批绝对路径，返回条目元信息；需要 file:read，未授权时返回空数组。 */
-  scan: (paths: string[], options?: PluginFileScanOptions) => Promise<PluginFileEntry[]>
-  /** 判断路径是否存在，结果与输入按下标一一对应；需要 file:read，未授权时返回等长的 false 数组。 */
-  exists: (paths: string[]) => Promise<boolean[]>
+  /** 展开一批绝对路径，返回条目元信息；需要 file:read。 */
+  scan: (paths: string[], options?: PluginFileScanOptions) => Promise<PluginFileScanResult>
+  /** 判断路径是否存在，exists 与入参按下标一一对应；需要 file:read，未授权时返回 { ok: false, code: 'NOT_SUPPORTED', exists: [...等长 false] }。 */
+  exists: (paths: string[]) => Promise<PluginFileExistsResult>
   /** 打开系统文件管理器并选中该路径；需要 file:read。 */
   reveal: (path: string) => Promise<boolean>
   /** 把绝对路径登记进本次会话的已授权集合；需要 file:write。 */

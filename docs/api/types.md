@@ -51,12 +51,15 @@ type PluginSaveDialogOptions = { title?: string; defaultPath?: string; buttonLab
 type PluginScreenPoint = { x: number; y: number }
 type PluginScreenRect = { x: number; y: number; width: number; height: number }
 type PluginDisplayInfo = { id: number; bounds: PluginScreenRect; workArea: PluginScreenRect; workAreaSize: { width: number; height: number }; scaleFactor: number; rotation: number; touchSupport: string }
-type PluginFileScanOptions = { recursive?: boolean; match?: string; limit?: number }
-type PluginFileEntry = { path: string; name: string; isDirectory: boolean; sizeBytes: number; modifiedAt: number; exists: boolean }
-type PluginFileRenameRequest = { items: Array<{ from: string; to: string }>; dryRun?: boolean; allowOverwrite?: boolean; onConflict?: 'error' | 'skip' | 'overwrite' }
+type PluginFileScanOptions = { recursive?: boolean; includeDirectories?: boolean; includeHidden?: boolean; match?: string; limit?: number }
+type PluginFileEntry = { path: string; directory: string; name: string; stem: string; extension: string; isDirectory: boolean; size: number; modifiedAt: number; createdAt: number; hidden: boolean; exists: boolean }
+type PluginFileScanResult = { ok: boolean; entries: PluginFileEntry[]; errors: Array<{ path: string; code: string; message?: string }>; truncated: boolean; code?: string }
+type PluginFileExistsResult = { ok: boolean; exists: boolean[]; code?: string }
+type PluginFileRenameRequest = { items: Array<{ from: string; to: string }>; dryRun?: boolean; allowOverwrite?: boolean; onConflict?: 'error' | 'skip' | 'overwrite'; continueOnError?: boolean }
+type PluginFileRenameResultItem = { from: string; to: string; ok: boolean; code?: string; message?: string }
 type PluginFileRenameItem = { from: string; to: string; status: 'planned' | 'applied' | 'skipped' | 'failed'; reason?: string; error?: string }
-type PluginFileRenameResult = { dryRun: boolean; items: PluginFileRenameItem[]; applied: Array<{ from: string; to: string }> }
-type PluginFileGrantResult = { granted: string[]; rejected: Array<{ path: string; reason: string }> }
+type PluginFileRenameResult = { ok: boolean; dryRun: boolean; results: PluginFileRenameResultItem[]; succeeded: number; failed: number; items: PluginFileRenameItem[]; applied: Array<{ from: string; to: string }>; code?: string }
+type PluginFileGrantResult = { ok: boolean; granted: string[]; rejected: Array<{ path: string; reason: string }> }
 ```
 
 完整声明包含 `ToolZenPluginApi`、剪贴板、文件、运行环境、主题事件、JSON 存储、字符串存储、进入/退出事件和独立窗口参数。插件组件仍应把 `api` 视为可空值，因为浏览器预览或非宿主加载环境不会提供它。

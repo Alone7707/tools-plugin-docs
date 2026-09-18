@@ -232,7 +232,7 @@ src/main.js  →  pnpm build  →  dist/index.js
 2. 用户按下 ToolZen 的呼出快捷键。
 3. 宿主读取剪贴板中的绝对路径，把这些插件显示为「快捷识别」候选。
 4. 用户点击候选卡片，或在剪贴板持有文件时按插件名打开插件。
-5. 插件以 `enterAction.type === 'file'` 被打开，绝对路径在 `enterAction.files` 里。
+5. 插件以 `enterAction = { code, type: 'file', payload, files }` 被打开：`type` 为 `'file'`，`payload` 是绝对路径用 `\n` 连接的结果，`files` 是同一批绝对路径的数组。
 
 让插件进入这个候选列表有两种声明方式，任选其一：
 
