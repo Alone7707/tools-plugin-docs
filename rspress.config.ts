@@ -38,6 +38,7 @@ const siteConfigOptions = {
             { text: '窗口', link: '/api/window' },
             { text: '快捷键', link: '/api/shortcut' },
             { text: '复制', link: '/api/copy' },
+            { text: '文件', link: '/api/file' },
             { text: '输入', link: '/api/input' },
             { text: '系统', link: '/api/system' },
             { text: '屏幕', link: '/api/screen' },

@@ -25,6 +25,7 @@ pnpm preview
 - `release.md`：6. 到开发者后台上传插件。
 - `api/plugin-api.md`：API 分类总览。
 - `api/events.md`、`window.md`、`shortcut.md`、`copy.md`、`input.md`：事件、窗口、快捷键、复制和输入 API。
+- `api/file.md`：文件与剪贴板文件 API（读取、扫描、授权、重命名）。
 - `api/system.md`、`screen.md`、`user.md`：系统、屏幕和用户 API。
 - `api/db.md`、`features.md`：数据存储和动态指令 API。
 

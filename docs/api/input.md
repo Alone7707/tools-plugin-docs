@@ -42,4 +42,4 @@ const removeEnter = api && api.onPluginEnter
   : null
 ```
 
-图片进入动作的 `payload` 是 data URL。更多类型见[事件](/api/events)。
+图片进入动作的 `payload` 是 data URL。文件进入动作的 `type` 是 `'file'`：`payload` 是绝对路径用 `\n` 连接的结果，完整路径数组在 `action.files` 里。更多类型见[事件](/api/events)。

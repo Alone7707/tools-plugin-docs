@@ -70,7 +70,7 @@
 | `icon` | `string` | 否 | `◆` | 字符或 emoji 图标最多 8 个字符；也可以填写最多 300 个字符的 `http(s)` 图片地址，或包内图片的相对路径。详见下文。 |
 | `keywords` | `string[]` | 否 | `[]` | 搜索关键词，最多 10 项，每项最多 30 个字符。建议包含中英文同义词。 |
 | `tags` | `string[]` | 否 | `[]` | 商店详情页展示标签，最多 10 项，每项最多 30 个字符。 |
-| `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`。详见[权限与能力矩阵](/permissions)。 |
+| `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write`。详见[权限与能力矩阵](/permissions)。 |
 | `features` | `Feature[]` | 否 | `[]` | 插件功能点及其主搜索触发方式，最多 12 项。字段见下文。 |
 | `clipboardRules` | `ClipboardRule[]` | 否 | `[]` | 全局快捷键唤出时的剪贴板识别规则，最多 8 条。字段见下文。 |
 | `config` | `object` | 否 | `{}` | 插件默认配置。最多 20 个键，值只能是 `string`、`number` 或 `boolean`；运行时通过 `config` prop 读取。 |
@@ -146,6 +146,7 @@ src/main.js  →  pnpm build  →  dist/index.js
 | 正则 | `{ "type": "regex", "match": "^#[0-9a-f]{6}$", "flags": "i" }` | 搜索输入整体匹配正则；`match` 最多 300 个字符且必须可编译 | `regex` |
 | 长文本 | `{ "type": "over", "minLength": 20, "maxLength": 5000 }` | 输入长度在区间内；两个边界都可省略，默认最小 1、最大 10000 | `over` |
 | 图片 | `{ "type": "img" }` | 搜索框出现剪贴板或粘贴图片候选 | `img` |
+| 文件 | `{ "type": "file" }` | 搜索框出现剪贴板文件候选 | `file` |
 
 字符串指令最多 30 个字符。`over` 的 `minLength`、`maxLength` 会转为正整数；不填或不是正数时使用运行时默认边界。主入口直接打开插件时，`enterAction.type` 为 `open`。
 
@@ -176,7 +177,7 @@ src/main.js  →  pnpm build  →  dist/index.js
 
 ## `clipboardRules` 剪贴板规则
 
-当用户通过全局快捷键唤出客户端时，宿主会检查剪贴板内容。命中规则后，内容会被填入搜索框并显示插件入口。每条规则包含：
+当用户通过全局快捷键唤出客户端时，宿主会检查剪贴板内容。命中规则后，内容会被填入搜索框并显示插件入口。剪贴板里是文件时走单独的「快捷识别」链路，见下文[剪贴板文件与快捷识别](#剪贴板文件与快捷识别)。每条规则包含：
 
 | 字段 | 类型 | 必填 | 限制 | 作用 |
 | --- | --- | :---: | --- | --- |
@@ -184,7 +185,7 @@ src/main.js  →  pnpm build  →  dist/index.js
 | `pattern` | `string` | 否 | 最多 200 个字符 | 面向用户的匹配条件说明。 |
 | `example` | `string` | 否 | 最多 200 个字符 | 商店详情中展示的示例。 |
 | `action` | `string` | 否 | 最多 200 个字符 | 命中后执行的动作说明。 |
-| `matchType` | `string` | 否 | `json` / `regex` / `url` / `timestamp` / `color` / `image` | 剪贴板匹配类型。 |
+| `matchType` | `string` | 否 | `json` / `regex` / `url` / `timestamp` / `color` / `image` / `file` | 剪贴板匹配类型。 |
 | `regex` | `string` | 条件必填 | `matchType` 为 `regex` 时必填，最多 300 个字符且必须可编译 | 自定义正则表达式。 |
 | `regexFlags` | `string` | 否 | JavaScript 正则标志；未填写时使用 `i` | 自定义正则标志。 |
 
@@ -198,6 +199,7 @@ src/main.js  →  pnpm build  →  dist/index.js
 | `timestamp` | 10 位或 13 位数字时间戳。 |
 | `color` | `#RGB`、`#RRGGBB`、`#RRGGBBAA`，或 `rgb(a)` / `hsl(a)` 颜色值。 |
 | `image` | `data:image/…` 图片 data URL。 |
+| `file` | 剪贴板里是文件或文件夹列表（绝对路径）。 |
 
 正则应尽量短小、范围明确，避免灾难性回溯或匹配所有文本，防止抢占其他插件的剪贴板入口。
 
@@ -221,6 +223,47 @@ src/main.js  →  pnpm build  →  dist/index.js
   ]
 }
 ```
+
+### 剪贴板文件与快捷识别
+
+剪贴板里是文件时走的是另一条链路，不需要写正则：宿主直接读剪贴板里的文件路径列表，把声明了文件能力的插件列成启动器中的「快捷识别」结果。完整链路是：
+
+1. 用户在系统文件管理器中复制文件或文件夹。
+2. 用户按下 ToolZen 的呼出快捷键。
+3. 宿主读取剪贴板中的绝对路径，把这些插件显示为「快捷识别」候选。
+4. 用户点击候选卡片，或在剪贴板持有文件时按插件名打开插件。
+5. 插件以 `enterAction.type === 'file'` 被打开，绝对路径在 `enterAction.files` 里。
+
+让插件进入这个候选列表有两种声明方式，任选其一：
+
+```json
+{
+  "clipboardRules": [
+    {
+      "name": "批量重命名",
+      "pattern": "剪贴板中的文件或文件夹",
+      "example": "D:\\photos\\IMG_0001.jpg",
+      "action": "打开批量重命名",
+      "matchType": "file"
+    }
+  ]
+}
+```
+
+```json
+{
+  "features": [
+    {
+      "name": "批量重命名",
+      "description": "重命名剪贴板中的文件",
+      "code": "rename",
+      "cmds": [{ "type": "file" }]
+    }
+  ]
+}
+```
+
+进入动作里有文件不等于拿到文件读写权限。要读取内容或改名，仍需在 `permissions` 中声明 `file:read` / `file:write`，细节见[文件](/api/file)与[事件、类型与错误](/api/contracts)。
 
 ## `config` 默认配置
 

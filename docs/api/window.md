@@ -25,7 +25,9 @@ api.setExpendHeight(
 await api.setExpendHeight(560, { minimumHeight: 420, animate: true })
 ```
 
-`height` 会由宿主限制在当前屏幕可用范围内，返回值是实际落地的高度。
+`height` 是内容高度，返回值是实际落地的高度；`options.minimumHeight` 抬高的是窗口的最小内容高度——设置之后窗口不会再被压到该值以下。`height` 和 `minimumHeight` 都会被宿主夹取到当前屏幕的可用工作区内。
+
+`animate` 与 `durationMs` 控制这次高度变化的过渡动画：`animate: true` 开启过渡，`durationMs` 指定毫秒时长，省略时使用宿主默认值。独立窗口调用返回 `0`。
 
 ## hideMainWindow
 

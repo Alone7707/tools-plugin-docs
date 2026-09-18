@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | `config` | `Record<string, string \| number \| boolean>` | manifest 默认配置与用户覆盖值合并后的结果 |
 | `initialText` | `string` | 搜索词、剪贴板识别文本或跳转载荷；没有时为空串 |
-| `enterAction` | `PluginEnterAction \| null` | 最近一次进入动作；包含 `code`、`type`、`payload` |
+| `enterAction` | `PluginEnterAction \| null` | 最近一次进入动作；包含 `code`、`type`、`payload`，文件进入动作还带 `files` |
 | `api` | `ToolZenPluginApi \| null` | 当前插件实例的受控宿主 API；浏览器直开预览时可能为空 |
 
 `api.getWindowType()` 可区分主窗口和独立窗口，返回 `'main'` 或 `'detach'`。`api.isDev()` 可判断当前是否通过开发者专区本地调试。
@@ -47,4 +47,4 @@ my_plugin/
 
 ## 安全边界
 
-远程插件和宿主处于同一渲染进程，不是 iframe 沙箱。不要将插件代码视为可信主进程代码，也不要把用户数据发送到未在说明中披露的服务。权限声明支持 `clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`，声明应与实际行为一致。
+远程插件和宿主处于同一渲染进程，不是 iframe 沙箱。不要将插件代码视为可信主进程代码，也不要把用户数据发送到未在说明中披露的服务。权限声明支持 `clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write`，声明应与实际行为一致。

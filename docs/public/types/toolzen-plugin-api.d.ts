@@ -1,7 +1,9 @@
 export type PluginEnterAction = {
   code: string
-  type: 'open' | 'text' | 'regex' | 'over' | 'img'
+  type: 'open' | 'text' | 'regex' | 'over' | 'img' | 'file'
   payload: string
+  /** type 为 'file' 时的绝对路径列表；payload 是同一批路径用 \n 连接的结果。 */
+  files?: string[]
 }
 
 export type PluginDetachWindowOptions = {
@@ -52,6 +54,70 @@ export type PluginScreenPoint = { x: number; y: number }
 export type PluginScreenRect = { x: number; y: number; width: number; height: number }
 export type PluginDisplayInfo = { id: number; bounds: PluginScreenRect; workArea: PluginScreenRect; workAreaSize: { width: number; height: number }; scaleFactor: number; rotation: number; touchSupport: string }
 
+export type PluginFileScanOptions = {
+  /** 是否把目录展开成其中的条目；递归最多 8 层，目录本身不再单独列出。 */
+  recursive?: boolean
+  /** 按条目名匹配的简易 glob：* 不跨路径分隔符，** 跨路径分隔符，? 匹配一个字符。 */
+  match?: string
+  /** 返回条目的上限，默认 2000，硬上限 10000。 */
+  limit?: number
+}
+
+export type PluginFileEntry = {
+  path: string
+  name: string
+  isDirectory: boolean
+  /** 目录恒为 0。 */
+  sizeBytes: number
+  /** 毫秒时间戳。 */
+  modifiedAt: number
+  /** 路径不存在时为 false，其余字段为零值。 */
+  exists: boolean
+}
+
+export type PluginFileRenameRequest = {
+  items: Array<{ from: string; to: string }>
+  /** 只预览计划结果，不改动磁盘；推荐先用它给用户确认。 */
+  dryRun?: boolean
+  /** onConflict: 'overwrite' 的别名。 */
+  allowOverwrite?: boolean
+  /** 目标已存在时的策略，默认 'error'。 */
+  onConflict?: 'error' | 'skip' | 'overwrite'
+}
+
+export type PluginFileRenameItem = {
+  from: string
+  to: string
+  status: 'planned' | 'applied' | 'skipped' | 'failed'
+  reason?: string
+  error?: string
+}
+
+export type PluginFileRenameResult = {
+  dryRun: boolean
+  items: PluginFileRenameItem[]
+  /** 真正执行成功的重命名，按执行顺序；把 from / to 对调再调一次即可撤销。 */
+  applied: Array<{ from: string; to: string }>
+}
+
+export type PluginFileGrantResult = {
+  granted: string[]
+  rejected: Array<{ path: string; reason: string }>
+}
+
+export type PluginFileApi = {
+  /** 展开一批绝对路径，返回条目元信息；需要 file:read，未授权时返回空数组。 */
+  scan: (paths: string[], options?: PluginFileScanOptions) => Promise<PluginFileEntry[]>
+  /** 判断路径是否存在，结果与输入按下标一一对应；需要 file:read，未授权时返回等长的 false 数组。 */
+  exists: (paths: string[]) => Promise<boolean[]>
+  /** 打开系统文件管理器并选中该路径；需要 file:read。 */
+  reveal: (path: string) => Promise<boolean>
+  /** 把绝对路径登记进本次会话的已授权集合；需要 file:write。 */
+  grant: (paths: string[]) => Promise<PluginFileGrantResult>
+  /** 批量重命名，只受理本次会话授权集合内的源路径；需要 file:write。 */
+  rename: (request: PluginFileRenameRequest) => Promise<PluginFileRenameResult>
+}
+
 export type ToolZenPluginApi = {
   pluginCode: string
   /** 复制文本到系统剪贴板。 */
@@ -64,6 +130,10 @@ export type ToolZenPluginApi = {
   clearClipboard: () => Promise<boolean>
   /** 将图片 Data URL 写入系统剪贴板；需要 clipboard:write。 */
   copyClipboardImage: (dataUrl: string) => Promise<boolean>
+  /** 读取系统剪贴板中文件的绝对路径；需要 clipboard:read，未授权或没有文件时返回空数组。 */
+  readClipboardFiles: () => Promise<string[]>
+  /** 把拖拽或粘贴进来的 File 还原成绝对路径；解析不出时返回空字符串，不需要权限。 */
+  getPathForFile: (file: File) => string
   /** 发送系统通知。 */
   showNotification: (body: string, title?: string) => Promise<boolean>
   /** 在 ToolZen 宿主窗口显示短暂的全局 Toast。 */
@@ -118,6 +188,8 @@ export type ToolZenPluginApi = {
   onWindowHide: (callback: () => void) => () => void
   db: PluginDocumentStore
   dbStorage: PluginStringStore
+  /** 受控的文件读取与重命名能力；写操作只受理本次会话授权的路径。 */
+  file: PluginFileApi
   /** 调起全屏取色。 */
   screenColorPick: () => Promise<{ hex: string } | null>
   /** 读取主屏幕信息。 */

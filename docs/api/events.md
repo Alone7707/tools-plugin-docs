@@ -97,8 +97,9 @@ api.onWindowHide(callback: () => void): () => void
 ```ts
 type PluginEnterAction = {
   code: string
-  type: 'open' | 'text' | 'regex' | 'over' | 'img'
+  type: 'open' | 'text' | 'regex' | 'over' | 'img' | 'file'
   payload: string
+  files?: string[]
 }
 ```
 
@@ -109,3 +110,6 @@ type PluginEnterAction = {
 | `regex` | 正则指令命中 | 命中文本 |
 | `over` | 文本长度区间命中 | 命中文本 |
 | `img` | 图片指令或剪贴板图片 | 图片 data URL |
+| `file` | 剪贴板文件候选 | 绝对路径用 `\n` 连接 |
+
+`type` 为 `file` 时 `files` 才是完整的绝对路径数组。独立窗口中的进入动作会被规范化，因此需要稳定拿到文件列表的插件应改用 `api.readClipboardFiles()`。

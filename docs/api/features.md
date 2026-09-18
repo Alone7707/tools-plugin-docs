@@ -47,6 +47,18 @@ ToolZen 的动态指令由 `manifest.json` 中的 `features[].cmds` 声明。插
 }
 ```
 
+## 文件指令
+
+```json
+{
+  "cmds": [
+    { "type": "file" }
+  ]
+}
+```
+
+用户复制文件后唤出客户端时，声明了文件指令的插件会作为「快捷识别」候选出现。命中后 `enterAction.type` 为 `'file'`，绝对路径数组在 `enterAction.files` 中。`clipboardRules` 里的 `matchType: "file"` 是等效的另一种声明方式。
+
 ## 读取命中结果
 
 指令命中后，通过 `enterAction` 或 `onPluginEnter` 获取功能编码和载荷：
