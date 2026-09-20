@@ -181,6 +181,22 @@ export type PluginFileApi = {
   rename: (request: PluginFileRenameRequest) => Promise<PluginFileRenameResult>
 }
 
+export type PluginNetworkApi = {
+  /**
+   * 由宿主主进程代发的网络请求，不受同源策略（CORS）限制；需要 `network:fetch` 权限。
+   *
+   * 返回真正的 `Response`：`status` / `statusText` / `ok` / `headers` / `body` 都可用，
+   * `text()` / `json()` 照常，`body.getReader()` 可以像直连一样边收边读（流式对话逐字输出一致）。
+   *
+   * 未声明 `network:fetch` 时直接抛 `TypeError`（消息点明缺少哪个权限），不会发出请求。
+   * `init.signal` 触发的中断以 `AbortError` 收尾；其余失败抛带 `code` 的 `TypeError`，
+   * 取值为 `ENOTFOUND` | `ETIMEDOUT` | `ECONNREFUSED` | `ABORT_ERR` | `EFBIG` | `NOT_SUPPORTED`
+   * （系统网络栈还可能透出其他错误码）。等响应头默认 2 分钟、上限 10 分钟，响应体不设时限、
+   * 单次上限 256 MB。仅接受 `http:` / `https:`，不带宿主自身 cookie，请求体只支持字符串。
+   */
+  fetch: (input: string | Request, init?: RequestInit) => Promise<Response>
+}
+
 export type ToolZenPluginApi = {
   pluginCode: string
   /** 复制文本到系统剪贴板。 */
@@ -253,6 +269,8 @@ export type ToolZenPluginApi = {
   dbStorage: PluginStringStore
   /** 受控的文件读取与重命名能力；写操作只受理本次会话授权的路径。 */
   file: PluginFileApi
+  /** 由宿主主进程代发的网络请求，不受 CORS 限制；需要 network:fetch，未声明时 fetch 抛 TypeError。 */
+  network: PluginNetworkApi
   /** 调起全屏取色。 */
   screenColorPick: () => Promise<{ hex: string } | null>
   /** 读取主屏幕信息。 */

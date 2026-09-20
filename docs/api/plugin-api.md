@@ -26,6 +26,7 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 | [复制](/api/copy) | `copyText`、`readClipboardText`、`readClipboardImage`、`readClipboardFiles`、`clearClipboard`、`copyClipboardImage` |
 | [输入](/api/input) | `initialText`、`enterAction`、后续输入处理 |
 | [文件](/api/file) | `getPathForFile`、`file.scan`、`file.exists`、`file.reveal`、`file.grant`、`file.rename` |
+| [网络](/api/network) | `api.network.fetch`、宿主主进程代发请求、响应流式读取与错误码 |
 | [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
 | [屏幕](/api/screen) | `screenColorPick`、显示器查询、鼠标坐标和 DIP 坐标转换 |
 | [用户](/api/user) | `pluginCode`、`getPluginInfo`、`getPluginConfig`、账号与插件身份边界 |
@@ -39,6 +40,7 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 - `Promise<boolean>` 返回 `false` 时表示动作未完成或被宿主拒绝。
 - 原生文件对话框需要在 `manifest.permissions` 中声明 `file:dialog`；未声明时不会弹出系统窗口。
 - 文件读取需要 `file:read`，文件写入需要 `file:write`；`file.rename` 只受理本会话已登记进授权集合的路径，拖入插件自身拖放区的文件需要先调用 `api.file.grant()`。详见[文件](/api/file)。
+- 跨域网络请求需要 `network:fetch`，用 `api.network.fetch()` 由宿主主进程代发，不受 CORS 限制；未声明权限时它抛 `TypeError`。浏览器自带的 `fetch` 只适合同源场景。详见[网络](/api/network)。
 - 剪贴板读写会按 `manifest.permissions` 做能力检查；未声明权限时返回空值或 `false`。
 - 插件不能直接调用 Node.js、Electron 主进程、`require` 或内部 IPC。
 - `window.toolzen` 是宿主内部 bridge，不是第三方插件的稳定 API。

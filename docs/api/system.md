@@ -48,7 +48,9 @@ if (api && api.shellOpenExternal) {
 }
 ```
 
-宿主只接受 `http://` 和 `https://` 地址。通过 `fetch` 请求网络时，需要声明 `network:fetch` 权限并满足 CORS。
+宿主只接受 `http://` 和 `https://` 地址；其他协议会被拒绝。
+
+网络请求请用 `api.network.fetch()`（需要声明 `network:fetch`）：请求由宿主主进程发出，不受同源策略（CORS）限制，签名与标准 `fetch` 一致。浏览器自带的 `fetch` 仍然可用，但它跑在渲染层、受同源策略约束，跨域目标不返回 CORS 头就会失败。详见[网络](/api/network)。
 
 ## showOpenDialog
 

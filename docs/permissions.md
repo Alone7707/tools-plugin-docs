@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | `clipboard:read` | 读取剪贴板内容或声明剪贴板识别规则 | `api.readClipboardText()`、`api.readClipboardImage()`、`api.readClipboardFiles()`、`initialText` / `enterAction` | 只处理插件必要的数据，不要长期保存 |
 | `clipboard:write` | 将结果写入系统剪贴板或清空剪贴板 | `api.copyText(text)`、`api.copyClipboardImage(dataUrl)`、`api.clearClipboard()` | 不要覆盖用户剪贴板而不提示 |
-| `network:fetch` | 通过浏览器 `fetch` 请求网络 | 标准 `fetch` | 目标服务必须支持 CORS，应披露数据去向 |
+| `network:fetch` | 由宿主主进程代发网络请求 | `api.network.fetch()` | 不受同源策略（CORS）限制，可访问任意 `http(s)` 服务，且不带宿主自身 cookie；应披露数据去向 |
 | `file:dialog` | 打开系统文件选择或保存对话框 | `api.showOpenDialog()`、`api.showSaveDialog()` | 只读取用户主动选择的路径；宿主不替插件读写文件 |
 | `file:read` | 读取用户交给插件的文件信息 | `api.file.scan()`、`api.file.exists()`、`api.file.reveal()` | 只扫描必要的路径，不要遍历用户整个磁盘 |
 | `file:write` | 在用户本次授权范围内重命名文件 | `api.file.grant()`、`api.file.rename()` | 会改动用户磁盘；先 `dryRun` 并把结果展示给用户 |
@@ -20,12 +20,14 @@
 | 层级 | 入口 | 第三方插件是否依赖 |
 | --- | --- | --- |
 | 稳定插件 API | 组件 `api` prop | 是，推荐 |
-| 浏览器标准能力 | DOM、`fetch`、`localStorage`、`window.Vue` | 可用，遵守权限和兼容性；源码由 Vite 编译后运行 |
+| 浏览器标准能力 | DOM、`fetch`、`localStorage`、`window.Vue` | 可用，遵守权限和兼容性；源码由 Vite 编译后运行。浏览器 `fetch` 受同源策略约束，跨域请求改用 `api.network.fetch()` |
 | Electron preload bridge | `window.toolzen` | 仅使用本文明确标为公开的能力；默认不依赖 |
 | 主进程 IPC | `ipcRenderer.invoke/send` 对应通道 | 禁止 |
 | 文件层 | `api.file.*`（受 `file:read` / `file:write` 约束） | 是，但只在用户交出来的路径范围内 |
 
 文件层单独成层：`file:read` 覆盖 `file.scan` / `file.exists` / `file.reveal`，`file:write` 覆盖 `file.grant` / `file.rename`；`clipboard:read` 同时也是 `readClipboardFiles` 的前提。
+
+`network:fetch` 的执行方式与文件能力不同：它对应 `api.network.fetch()`，请求由宿主**主进程**发出，不受渲染层同源策略约束，因此目标服务不需要返回 CORS 头。未声明 `network:fetch` 时 `api.network.fetch` 直接抛 `TypeError`（消息点明缺少哪个权限），不会发出任何请求。插件仍可继续使用全局 `fetch`，但它跑在渲染层、只能访问同源地址；老宿主没有 `api.network.fetch` 时应退回全局 `fetch`。详见[网络](/api/network)。
 
 需要说清楚实际执行方式：渲染层按声明拦截调用，未声明时 `file.scan` 返回 `{ ok: false, code: 'NOT_SUPPORTED', entries: [] }`、`file.exists` 返回 `{ ok: false, code: 'NOT_SUPPORTED', exists: [...与输入等长的 false] }`、`file.reveal` 返回 `false`，`rename` 逐项返回 `NOT_SUPPORTED` 并在 `items[].reason` 里给 `permission-denied`，`grant` 返回 `{ ok: false, granted: [] }` 并在 `rejected` 里逐项报 `permission-denied`，而不是抛异常。但写入的真正护栏不是权限字符串本身，而是宿主维护的**已授权路径集合**——`rename` 只受理本会话已登记进该集合的路径。宿主自动登记剪贴板文件、文件对话框选中的路径和粘贴进搜索框的文件；用户拖入插件自身拖放区的文件需要插件自己调用 `api.file.grant()`。这个集合不落盘、重启即清空。
 

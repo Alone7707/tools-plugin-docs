@@ -54,9 +54,11 @@ function subscribeTheme(api, onTheme) {
 - `file.rename` 未声明 `file:write` 时逐项返回 `results[].ok === false`、`code: 'NOT_SUPPORTED'`，诊断口径 `items[].status` 为 `failed`、`reason` 为 `permission-denied`，整批调用本身不抛错；`file.grant` 则返回 `{ ok: false, granted: [] }`，并把这类路径逐项写进 `rejected`，`reason` 为 `permission-denied`。授权范围之外的源路径不会被改动，只会计入 `not-granted`。
 - `file.rename` 的单项失败不会中断整批，每个条目各有 `results[].code` / `items[].status` 和 `reason` / `error`；顶层 `ok` 只在全部成功时为 `true`，`code` 取第一条失败项的错误码；一次调用超过 5000 项会直接报错。
 - `file.scan` 遇到不存在的路径也不抛错：该路径进 `errors`，`code` 为 `ENOENT`，不会出现在 `entries` 里，也不影响其他条目的返回。
+- `api.network.fetch` 未声明 `network:fetch` 时**直接抛 `TypeError`**（消息点明缺少哪个权限），不会发出请求。
+- `api.network.fetch` 的网络失败抛带 `code` 的 `TypeError`（例如 `ENOTFOUND`、`ETIMEDOUT`、`ECONNREFUSED`、`ABORT_ERR`、`EFBIG`）；`init.signal` 触发的中断以 `AbortError` 收尾；浏览器预览等没有主进程的环境抛 `NOT_SUPPORTED`。详见[网络](/api/network)。
 - 显示器查询与坐标换算只返回几何信息，不授予截图、窗口移动或文件读写权限。
 - 远程入口加载失败会在宿主显示错误和“重新加载”操作，插件本身无法绕过入口校验。
 
 ## 与标准浏览器能力的关系
 
-插件可使用标准 `fetch`、DOM、`localStorage` 和 Vue 运行时。网络请求应声明 `network:fetch` 并满足目标服务 CORS。复制文本优先使用 `api.copyText`，因为窗口失焦时浏览器剪贴板策略可能拒绝直接写入。
+插件可使用标准 `fetch`、DOM、`localStorage` 和 Vue 运行时。插件与宿主共用渲染层上下文，浏览器 `fetch` 因此受同源策略约束：目标服务不返回 CORS 头就会直接失败（报 `Failed to fetch`）。要访问跨域服务（例如用户自建的模型网关）改用 `api.network.fetch()`，请求由宿主主进程发出，不受 CORS 限制，签名与返回值与标准 `fetch` 一致；它需要 `network:fetch` 权限，未声明时抛 `TypeError`。复制文本优先使用 `api.copyText`，因为窗口失焦时浏览器剪贴板策略可能拒绝直接写入。

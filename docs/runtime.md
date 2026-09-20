@@ -48,3 +48,5 @@ my_plugin/
 ## 安全边界
 
 远程插件和宿主处于同一渲染进程，不是 iframe 沙箱。不要将插件代码视为可信主进程代码，也不要把用户数据发送到未在说明中披露的服务。权限声明支持 `clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write`，声明应与实际行为一致。
+
+正因为插件和宿主共用这个渲染层上下文，插件里的浏览器 `fetch` 受同源策略约束：目标服务不返回 CORS 头就会直接失败。跨域请求要走 `api.network.fetch()`，由宿主主进程代发，不受 CORS 限制。详见[网络](/api/network)。
