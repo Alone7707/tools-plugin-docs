@@ -168,6 +168,7 @@ try {
 | `ECONNREFUSED` | 目标端口拒绝连接。 |
 | `ABORT_ERR` | 宿主内部的中止路径（区别于 `init.signal` 的 `AbortError`）。 |
 | `EFBIG` | 响应体超过单次 256 MB 上限。 |
+| `EINVALID_HEADER` | 某个请求头的值不合法（含换行等），请求被拒绝、未发出。 |
 | `NOT_SUPPORTED` | 当前环境没有主进程（例如浏览器预览），能力不可用。 |
 
 系统网络栈还可能透出其他错误码，判断失败时不要只匹配表中这几项，`error.code ?? error.message` 一起显示更稳妥。

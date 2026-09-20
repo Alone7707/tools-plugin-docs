@@ -190,9 +190,10 @@ export type PluginNetworkApi = {
    *
    * 未声明 `network:fetch` 时直接抛 `TypeError`（消息点明缺少哪个权限），不会发出请求。
    * `init.signal` 触发的中断以 `AbortError` 收尾；其余失败抛带 `code` 的 `TypeError`，
-   * 取值为 `ENOTFOUND` | `ETIMEDOUT` | `ECONNREFUSED` | `ABORT_ERR` | `EFBIG` | `NOT_SUPPORTED`
+   * 取值为 `ENOTFOUND` | `ETIMEDOUT` | `ECONNREFUSED` | `ABORT_ERR` | `EFBIG` | `EINVALID_HEADER` | `NOT_SUPPORTED`
    * （系统网络栈还可能透出其他错误码）。等响应头默认 2 分钟、上限 10 分钟，响应体不设时限、
    * 单次上限 256 MB。仅接受 `http:` / `https:`，不带宿主自身 cookie，请求体只支持字符串。
+   * 请求头的值不合法时（如带换行）以 `EINVALID_HEADER` 失败，宿主不会静默丢掉该头把请求发出去。
    */
   fetch: (input: string | Request, init?: RequestInit) => Promise<Response>
 }
