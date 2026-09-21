@@ -11,7 +11,8 @@
 | `network:fetch` | 由宿主主进程代发网络请求 | `api.network.fetch()` | 不受同源策略（CORS）限制，可访问任意 `http(s)` 服务，且不带宿主自身 cookie；应披露数据去向 |
 | `file:dialog` | 打开系统文件选择或保存对话框 | `api.showOpenDialog()`、`api.showSaveDialog()` | 只读取用户主动选择的路径；宿主不替插件读写文件 |
 | `file:read` | 读取用户交给插件的文件信息 | `api.file.scan()`、`api.file.exists()`、`api.file.reveal()` | 只扫描必要的路径，不要遍历用户整个磁盘 |
-| `file:write` | 在用户本次授权范围内重命名文件 | `api.file.grant()`、`api.file.rename()` | 会改动用户磁盘；先 `dryRun` 并把结果展示给用户 |
+| `file:write` | 在用户本次授权范围内重命名文件、写入新文件 | `api.file.grant()`、`api.file.rename()`、`api.file.write()` | 会改动用户磁盘；先 `dryRun` 并把结果展示给用户。写入只受理用户交出来的路径 |
+| `screen:capture` | 枚举屏幕与窗口、采集画面与系统声音、区域选区、录制期保持会话 | `api.desktopCapturer.getSources()`、`api.capture.getStream()`、`api.overlay.selectRegion()`、`api.holdSessionReset()` | **能拿到用户屏幕上的全部内容**，包括其它应用的窗口；只在用户明确发起录制后采集，不要后台常开，并说明录制内容存在哪里 |
 
 全局快捷键（`api.registerShortcut`）不需要声明权限：它只在插件运行期间生效，退出即自动注销，且组合键被宿主或其他应用占用时宿主会直接拒绝。它抢的是系统级键位，插件仍要挑得克制，并在注册失败时如实提示用户。
 
@@ -24,8 +25,11 @@
 | Electron preload bridge | `window.toolzen` | 仅使用本文明确标为公开的能力；默认不依赖 |
 | 主进程 IPC | `ipcRenderer.invoke/send` 对应通道 | 禁止 |
 | 文件层 | `api.file.*`（受 `file:read` / `file:write` 约束） | 是，但只在用户交出来的路径范围内 |
+| 屏幕采集层 | `api.desktopCapturer.*` / `api.capture.*` / `api.overlay.*`（受 `screen:capture` 约束） | 是，但只在用户发起录制之后 |
 
-文件层单独成层：`file:read` 覆盖 `file.scan` / `file.exists` / `file.reveal`，`file:write` 覆盖 `file.grant` / `file.rename`；`clipboard:read` 同时也是 `readClipboardFiles` 的前提。
+文件层单独成层：`file:read` 覆盖 `file.scan` / `file.exists` / `file.reveal`，`file:write` 覆盖 `file.grant` / `file.rename` / `file.write`；`clipboard:read` 同时也是 `readClipboardFiles` 的前提。
+
+屏幕采集层同样单独成层，原因和文件层一样：它有一部分必须在**主进程**执行。采集源无法在渲染层枚举（W3C 规范禁止 `enumerateDevices` 暴露它们，`desktopCapturer` 也只在主进程可用），`getDisplayMedia` 在没有宿主安装 request handler 时必抛 `NotSupportedError`，系统回环音频也只能由主进程给出。未声明 `screen:capture` 时：枚举回空数组、`getMediaAccessStatus` 回 `'unknown'`、`selectRegion` 回 `null`、`holdSessionReset` 回 `false`，而 `capture.getStream` **直接抛错**（静默给一条空流会让插件以为录上了）。详见[屏幕](/api/screen)。
 
 `network:fetch` 的执行方式与文件能力不同：它对应 `api.network.fetch()`，请求由宿主**主进程**发出，不受渲染层同源策略约束，因此目标服务不需要返回 CORS 头。未声明 `network:fetch` 时 `api.network.fetch` 直接抛 `TypeError`（消息点明缺少哪个权限），不会发出任何请求。插件仍可继续使用全局 `fetch`，但它跑在渲染层、只能访问同源地址；老宿主没有 `api.network.fetch` 时应退回全局 `fetch`。详见[网络](/api/network)。
 

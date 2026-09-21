@@ -2,9 +2,9 @@
 
 文件 API 面向「用户把文件交给插件」这一类场景：读取剪贴板里的文件、还原拖入文件的路径、按需扫描文件信息，以及在用户明确同意后批量重命名。所有参数都是绝对路径，相对路径不会被受理。
 
-文件能力分成两层权限：`file:read` 管读取（`file.scan`、`file.exists`、`file.reveal`），`file:write` 管写入（`file.grant`、`file.rename`）。写在 `manifest.json` 的 `permissions` 里。
+文件能力分成两层权限：`file:read` 管读取（`file.scan`、`file.exists`、`file.reveal`），`file:write` 管写入（`file.grant`、`file.rename`、`file.write`）。写在 `manifest.json` 的 `permissions` 里。
 
-写入的底线只有一条：**重命名只会碰本会话已登记进授权集合的路径**。这个集合由宿主维护，不随清单上的权限字符串放大；剪贴板文件和文件对话框选中的路径由宿主自动登记，用户拖进插件自己拖放区的文件则需要插件显式 `grant`。
+写入的底线只有一条：**重命名与写入只会碰本会话已登记进授权集合的路径**。这个集合由宿主维护，不随清单上的权限字符串放大；剪贴板文件和文件对话框选中的路径由宿主自动登记，用户拖进插件自己拖放区的文件则需要插件显式 `grant`。
 
 ## 插件怎么拿到剪贴板里的文件
 
@@ -339,3 +339,61 @@ if (blocked.length === 0) {
   // 需要撤回时：await api.file.rename({ items: undo })
 }
 ```
+
+## file.write
+
+把二进制内容写入磁盘，返回**真实落盘路径**。需要 `file:write`。
+
+```ts
+type PluginFileWriteResult = {
+  ok: boolean
+  path?: string      // 真实落盘路径，成功时才有；可直接喂给 api.file.reveal
+  code?: 'invalid' | 'not-granted' | 'EFBIG' | 'failed'
+  message?: string
+}
+
+api.file.write(request: {
+  path: string                              // 目标绝对路径
+  name?: string                             // 文件名，仅作参考
+  data: ArrayBuffer | ArrayBufferView       // 二进制内容
+  mimeType?: string                         // MIME 类型，仅作参考
+}): Promise<PluginFileWriteResult>
+```
+
+它解决的是「保存之后拿不到路径」这个问题：走浏览器下载流程时功能可用，但插件不知道文件落在哪，
+「在资源管理器中定位」就用不了。有了它就能拿到真实路径。
+
+**护栏与 `rename` 一致**：只受理本会话已登记进授权集合的路径。最自然的用法是先
+`api.showSaveDialog()` 让用户选位置（宿主会自动登记），再写：
+
+```js
+const target = await api.showSaveDialog({
+  title: '保存录屏文件',
+  defaultPath: 'recording.webm',
+  filters: [{ name: 'WebM 视频', extensions: ['webm'] }]
+})
+if (!target) return   // 用户取消
+
+const written = await api.file.write({
+  path: target,
+  name: 'recording.webm',
+  data: await blob.arrayBuffer(),
+  mimeType: blob.type
+})
+
+if (written.ok) {
+  api.toast(`已保存到 ${written.path}`)
+  await api.file.reveal(written.path)   // 一键定位
+}
+```
+
+失败码：
+
+| `code` | 含义 |
+| --- | --- |
+| `invalid` | 路径为空 / 不是绝对路径，或 `data` 不是二进制。 |
+| `not-granted` | 路径不在本会话的已授权集合里（插件自己拼的路径会走到这里）。 |
+| `EFBIG` | 内容超过单次上限（512MB）。 |
+| `failed` | 操作系统拒绝了写入，原始信息在 `message` 里。 |
+
+父目录不存在时宿主会自动补建，所以往「已授权目录 + 新的子路径」写不需要先建目录。

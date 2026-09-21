@@ -168,6 +168,25 @@ export type PluginFileGrantResult = {
   rejected: Array<{ path: string; reason: string }>
 }
 
+export type PluginFileWriteResult = {
+  ok: boolean
+  /** 真实落盘路径，成功时才有；可直接喂给 file.reveal。 */
+  path?: string
+  code?: 'invalid' | 'not-granted' | 'EFBIG' | 'failed'
+  message?: string
+}
+
+export type PluginFileWriteRequest = {
+  /** 目标绝对路径；必须已在本次会话的已授权集合里。 */
+  path: string
+  /** 文件名，仅作参考。 */
+  name?: string
+  /** 二进制内容。 */
+  data: ArrayBuffer | ArrayBufferView
+  /** MIME 类型，仅作参考。 */
+  mimeType?: string
+}
+
 export type PluginFileApi = {
   /** 展开一批绝对路径，返回条目元信息；需要 file:read。 */
   scan: (paths: string[], options?: PluginFileScanOptions) => Promise<PluginFileScanResult>
@@ -179,6 +198,82 @@ export type PluginFileApi = {
   grant: (paths: string[]) => Promise<PluginFileGrantResult>
   /** 批量重命名，只受理本次会话授权集合内的源路径；需要 file:write。 */
   rename: (request: PluginFileRenameRequest) => Promise<PluginFileRenameResult>
+  /**
+   * 把二进制内容写入磁盘并返回真实落盘路径；需要 file:write。
+   *
+   * 只受理本次会话已授权集合内的路径（与 rename 同一层护栏）——最自然的用法是先
+   * `showSaveDialog()` 让用户选位置（宿主会自动登记），再写。
+   */
+  write: (request: PluginFileWriteRequest) => Promise<PluginFileWriteResult>
+}
+
+/** 一个可录制的采集源；需要 screen:capture。 */
+export type PluginDesktopSource = {
+  /** 传给 capture.getStream 的源标识，形如 `screen:0:0` / `window:123:0`。 */
+  id: string
+  /** 窗口标题 / 屏幕名。 */
+  name: string
+  kind: 'screen' | 'window'
+  /** 屏幕源才有，对应 Display.id。 */
+  display_id: string
+  /** 缩略图 Data URL；未请求缩略图时为空串。 */
+  thumbnail: string
+  /** 应用图标 Data URL；屏幕源恒为空串。 */
+  appIcon: string
+}
+
+export type PluginDesktopSourcesOptions = {
+  /** 要枚举的类型；不传时屏幕与窗口都要。 */
+  types?: Array<'screen' | 'window'>
+  /** 缩略图尺寸；给 0 表示不要缩略图（枚举更快、IPC 更小）。 */
+  thumbnailSize?: { width: number; height: number }
+  /** 是否抓取窗口图标；默认 true。 */
+  fetchWindowIcons?: boolean
+}
+
+export type PluginCaptureStreamOptions = {
+  /** 要采集的源 id，来自 desktopCapturer.getSources。 */
+  sourceId?: string
+  /** 源类型，仅作参考。 */
+  kind?: 'screen' | 'window'
+  /** 要混入的音轨。speaker 为系统回环音频（Windows 可靠 / macOS 需授权 / Linux 不支持）。 */
+  audio?: { speaker?: boolean; microphone?: boolean }
+  /** 目标帧率。 */
+  fps?: number
+  width?: number
+  height?: number
+}
+
+export type PluginMediaAccessType = 'screen' | 'microphone' | 'camera'
+
+export type PluginMediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
+
+export type PluginScreenCaptureApi = {
+  /** 枚举可录制的屏幕与窗口（标题 / 缩略图 / 应用图标）；需要 screen:capture。 */
+  desktopCapturer: {
+    getSources: (options?: PluginDesktopSourcesOptions) => Promise<PluginDesktopSource[]>
+  }
+  /**
+   * 按源取流，返回标准 MediaStream；需要 screen:capture。
+   *
+   * **必须在用户手势里调用**：getDisplayMedia 要求 transient user activation 且文档处于聚焦状态。
+   */
+  capture: {
+    getStream: (options?: PluginCaptureStreamOptions) => Promise<MediaStream>
+  }
+  /** 查询系统级媒体权限状态；需要 screen:capture。 */
+  systemPreferences: {
+    getMediaAccessStatus: (type: PluginMediaAccessType) => Promise<PluginMediaAccessStatus>
+  }
+  /** 桌面级区域选区，返回 DIP 屏幕坐标矩形；需要 screen:capture。 */
+  overlay: {
+    selectRegion: () => Promise<{ x: number; y: number; width: number; height: number } | null>
+  }
+  /**
+   * 录制期间阻止会话重置（主窗口收起 30 秒后插件页默认会被卸载，录制会断）。
+   * 开始录制 hold、结束 release；窗口关闭时宿主自动释放。需要 screen:capture。
+   */
+  holdSessionReset: (held: boolean) => Promise<boolean>
 }
 
 export type PluginNetworkApi = {
@@ -272,6 +367,20 @@ export type ToolZenPluginApi = {
   file: PluginFileApi
   /** 由宿主主进程代发的网络请求，不受 CORS 限制；需要 network:fetch，未声明时 fetch 抛 TypeError。 */
   network: PluginNetworkApi
+  /**
+   * 屏幕采集能力（枚举 / 取流 / 权限状态 / 区域选区 / 录制期保持会话）；需要 screen:capture。
+   *
+   * 采集源无法在渲染层枚举（W3C 规范禁止），所以枚举与按源授权都由宿主主进程完成。
+   */
+  desktopCapturer: PluginScreenCaptureApi['desktopCapturer']
+  /** 按源取流（可带系统声音）；需要 screen:capture，必须在用户手势里调用。 */
+  capture: PluginScreenCaptureApi['capture']
+  /** 查询系统级媒体权限状态；需要 screen:capture。 */
+  systemPreferences: PluginScreenCaptureApi['systemPreferences']
+  /** 桌面级区域选区；需要 screen:capture。 */
+  overlay: PluginScreenCaptureApi['overlay']
+  /** 录制期间阻止会话重置；需要 screen:capture。 */
+  holdSessionReset: PluginScreenCaptureApi['holdSessionReset']
   /** 调起全屏取色。 */
   screenColorPick: () => Promise<{ hex: string } | null>
   /** 读取主屏幕信息。 */

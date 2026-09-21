@@ -70,7 +70,7 @@
 | `icon` | `string` | 否 | `◆` | 字符或 emoji 图标最多 8 个字符；也可以填写最多 300 个字符的 `http(s)` 图片地址，或包内图片的相对路径。详见下文。 |
 | `keywords` | `string[]` | 否 | `[]` | 搜索关键词，最多 10 项，每项最多 30 个字符。建议包含中英文同义词。 |
 | `tags` | `string[]` | 否 | `[]` | 商店详情页展示标签，最多 10 项，每项最多 30 个字符。 |
-| `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write`。详见[权限与能力矩阵](/permissions)。 |
+| `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write`、`screen:capture`。详见[权限与能力矩阵](/permissions)。 |
 | `features` | `Feature[]` | 否 | `[]` | 插件功能点及其主搜索触发方式，最多 12 项。字段见下文。 |
 | `clipboardRules` | `ClipboardRule[]` | 否 | `[]` | 全局快捷键唤出时的剪贴板识别规则，最多 8 条。字段见下文。 |
 | `config` | `object` | 否 | `{}` | 插件默认配置。最多 20 个键，值只能是 `string`、`number` 或 `boolean`；运行时通过 `config` prop 读取。 |

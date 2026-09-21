@@ -39,8 +39,9 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 - 全局快捷键跟着插件实例走：插件退出时宿主自动注销，不需要在 `onPluginOut` 里额外收尾。
 - `Promise<boolean>` 返回 `false` 时表示动作未完成或被宿主拒绝。
 - 原生文件对话框需要在 `manifest.permissions` 中声明 `file:dialog`；未声明时不会弹出系统窗口。
-- 文件读取需要 `file:read`，文件写入需要 `file:write`；`file.rename` 只受理本会话已登记进授权集合的路径，拖入插件自身拖放区的文件需要先调用 `api.file.grant()`。详见[文件](/api/file)。
+- 文件读取需要 `file:read`，文件写入需要 `file:write`；`file.rename` 与 `file.write` 只受理本会话已登记进授权集合的路径，拖入插件自身拖放区的文件需要先调用 `api.file.grant()`。详见[文件](/api/file)。
 - 跨域网络请求需要 `network:fetch`，用 `api.network.fetch()` 由宿主主进程代发，不受 CORS 限制；未声明权限时它抛 `TypeError`。浏览器自带的 `fetch` 只适合同源场景。详见[网络](/api/network)。
+- 录屏 / 截屏需要 `screen:capture`：`api.desktopCapturer.getSources()` 枚举屏幕与窗口，`api.capture.getStream()` 按源取流（可带系统声音），`api.overlay.selectRegion()` 做桌面级区域选区。未声明权限时枚举回空数组、取流直接抛错。详见[屏幕](/api/screen)。
 - 剪贴板读写会按 `manifest.permissions` 做能力检查；未声明权限时返回空值或 `false`。
 - 插件不能直接调用 Node.js、Electron 主进程、`require` 或内部 IPC。
 - `window.toolzen` 是宿主内部 bridge，不是第三方插件的稳定 API。
