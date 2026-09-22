@@ -270,8 +270,10 @@ export type PluginScreenCaptureApi = {
     selectRegion: () => Promise<{ x: number; y: number; width: number; height: number } | null>
   }
   /**
-   * 录制期间阻止会话重置（主窗口收起 30 秒后插件页默认会被卸载，录制会断）。
-   * 开始录制 hold、结束 release；窗口关闭时宿主自动释放。需要 screen:capture。
+   * 阻止主窗口隐藏后的会话重置，让插件页留在内存里。**不需要权限。**
+   *
+   * 主窗口收起后宿主默认会在会话重置等待时间（默认 30 秒）后卸载插件页，
+   * 后台任务型插件（录制 / 导出 / 长轮询 / 批量处理）会因此中断。
    */
   holdSessionReset: (held: boolean) => Promise<boolean>
 }
@@ -379,8 +381,19 @@ export type ToolZenPluginApi = {
   systemPreferences: PluginScreenCaptureApi['systemPreferences']
   /** 桌面级区域选区；需要 screen:capture。 */
   overlay: PluginScreenCaptureApi['overlay']
-  /** 录制期间阻止会话重置；需要 screen:capture。 */
+  /**
+   * 阻止主窗口隐藏后的会话重置，让插件页留在内存里；**不需要权限**。
+   *
+   * 后台任务型插件（录制 / 导出 / 长轮询 / 批量处理）在窗口收起后会因会话重置被卸载，
+   * 用它在任务期间持有、结束后释放。
+   */
   holdSessionReset: PluginScreenCaptureApi['holdSessionReset']
+  /**
+   * 收起主窗口并保持插件页不被会话重置卸载；**不需要权限**。
+   *
+   * 等价于 `holdSessionReset(true)` + `hideMainWindow()`，`hold` 默认 true。
+   */
+  hideMainWindowKeepAlive: (hold?: boolean) => void
   /** 调起全屏取色。 */
   screenColorPick: () => Promise<{ hex: string } | null>
   /** 读取主屏幕信息。 */

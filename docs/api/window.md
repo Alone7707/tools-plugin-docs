@@ -41,6 +41,43 @@ api.hideMainWindow(): void
 if (api && api.hideMainWindow) api.hideMainWindow()
 ```
 
+> 注意：窗口收起后，宿主默认会在「设置 → 会话重置」的等待时间（默认 30 秒）后把界面重置回
+> 搜索首页，**插件页随之被卸载**。后台任务型插件（录制、导出、长轮询、批量处理）要用
+> `api.hideMainWindowKeepAlive()` 或 `api.holdSessionReset(true)`，否则任务会在 30 秒后被静默中断。
+
+## hideMainWindowKeepAlive
+
+收起主窗口，并让本插件页**不被会话重置卸载**。**不需要任何权限。**
+
+```ts
+api.hideMainWindowKeepAlive(hold?: boolean): void   // hold 默认 true
+```
+
+```js
+// 开始一个后台任务：收起窗口，但别把我卸载掉
+api.hideMainWindowKeepAlive()
+
+// ... 任务结束 ...
+api.holdSessionReset(false)
+```
+
+「隐藏窗口 + 别重置我」是后台任务型插件最常见的组合，所以并成一次调用——分开调容易漏掉后一步，
+漏了的后果是任务在 30 秒后被静默中断。语义上等价于 `holdSessionReset(true)` 之后
+`hideMainWindow()`。
+
+传 `hold: false` 表示「收起窗口，但照常按会话重置时间卸载我」。
+
+## holdSessionReset
+
+单独控制会话持有，不涉及窗口。**不需要任何权限。**
+
+```ts
+api.holdSessionReset(held: boolean): Promise<boolean>
+```
+
+宿主会做三件兜底：同一插件重复 hold 不会叠加、插件页卸载时自动释放、主窗口重新显示后
+下一次隐藏会重新计时。建议在 `onPluginOut` 里也释放一次，语义更清楚。
+
 ## outPlugin
 
 主窗口中返回搜索首页；独立窗口中关闭当前插件窗口。

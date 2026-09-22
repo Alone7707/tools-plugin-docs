@@ -120,15 +120,22 @@ api.overlay.selectRegion(): Promise<ScreenRect | null>
 
 ### holdSessionReset
 
-录制期间阻止宿主做会话重置。
+阻止主窗口隐藏后的会话重置，让插件页留在内存里。**不需要任何权限。**
 
 ```ts
 api.holdSessionReset(held: boolean): Promise<boolean>
 ```
 
-主窗口收起后，插件页默认会在会话重置（默认 30 秒）时被卸载，录制随之中断。开始录制时
-`holdSessionReset(true)`、结束时 `holdSessionReset(false)`。窗口关闭时宿主会自动释放，
-插件不必在 `onPluginOut` 里收尾。
+主窗口收起后，宿主默认会在「设置 → 会话重置」的等待时间（默认 30 秒）后把界面重置回搜索首页，
+插件页随之被卸载。后台任务型插件（录制、导出、长轮询、批量处理）会因此中断。
+
+开始任务时 `holdSessionReset(true)`、结束时 `holdSessionReset(false)`。
+
+宿主会做三件兜底：同一插件重复 hold 不会叠加、插件页卸载时自动释放、主窗口重新显示后下一次
+隐藏会重新计时。建议在 `onPluginOut` 里也释放一次。
+
+配套的快捷方法见[窗口](/api/window)的 `api.hideMainWindowKeepAlive()`——「收起窗口 + 别卸载我」
+一次搞定。
 
 ## screenColorPick
 
