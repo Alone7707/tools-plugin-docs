@@ -25,10 +25,11 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 | [快捷键](/api/shortcut) | `registerShortcut`、`unregisterShortcut` |
 | [复制](/api/copy) | `copyText`、`readClipboardText`、`readClipboardImage`、`readClipboardFiles`、`clearClipboard`、`copyClipboardImage` |
 | [输入](/api/input) | `initialText`、`enterAction`、后续输入处理 |
-| [文件](/api/file) | `getPathForFile`、`file.scan`、`file.exists`、`file.reveal`、`file.grant`、`file.rename` |
+| [文件](/api/file) | `getPathForFile`、`file.scan`、`file.exists`、`file.reveal`、`file.grant`、`file.rename`、`file.write` |
 | [网络](/api/network) | `api.network.fetch`、宿主主进程代发请求、响应流式读取与错误码 |
 | [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
-| [屏幕](/api/screen) | `screenColorPick`、显示器查询、鼠标坐标和 DIP 坐标转换 |
+| [屏幕](/api/screen) | `desktopCapturer.getSources`、`capture.getStream`、`systemPreferences.getMediaAccessStatus`、`overlay.selectRegion`、`holdSessionReset`、`screenColorPick`、显示器查询、鼠标坐标和 DIP 坐标转换 |
+| [窗口](/api/window) | `hideMainWindow`、`hideMainWindowKeepAlive`、`holdSessionReset`、`outPlugin`、`setExpendHeight`、`detachWindow`、独立窗口 |
 | [用户](/api/user) | `pluginCode`、`getPluginInfo`、`getPluginConfig`、账号与插件身份边界 |
 | [数据存储](/api/db) | `db.get/put/remove`、`dbStorage.getItem/setItem/removeItem` |
 | [动态指令](/api/features) | `features[].cmds`、`clipboardRules`、进入动作 |

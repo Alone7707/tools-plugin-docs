@@ -154,10 +154,24 @@
 | `fileReveal` | `path: string` | `Promise<boolean>` | 在系统文件管理器中选中路径；对应 `api.file.reveal` |
 | `fileGrant` | `paths: string[]` | `Promise<PluginFileGrantResult>` | 登记本次会话的授权路径集合；对应 `api.file.grant` |
 | `fileRename` | `request: PluginFileRenameRequest` | `Promise<PluginFileRenameResult>` | 批量重命名；对应 `api.file.rename` |
+| `writeFileContent` | `{ path, name?, data, mimeType? }` | `Promise<PluginFileWriteResult>` | 把二进制写入磁盘并回真实路径；对应 `api.file.write` |
 | `getDroppedPath` | `file: File` | `string` | 拖入文件反查绝对路径；`api.getPathForFile` 的底层调用（同上文开发者专区表格） |
 | `onShortcutClipboardFileCandidate` | `(callback: (paths: string[]) => void)` | `() => void` | 主进程事件：剪贴板现在持有这些文件，呼出时触发；`[]` 表示清空候选 |
 
-**bridge 层自己不做任何权限检查**：`file:read` / `file:write` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()` 和 `api.file.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileScanResult`、`PluginFileExistsResult`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)。
+**bridge 层自己不做任何权限检查**：`file:read` / `file:write` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()` 和 `api.file.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileScanResult`、`PluginFileExistsResult`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult`、`PluginFileWriteRequest`、`PluginFileWriteResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)。
+
+## 屏幕采集（宿主内部）
+
+这一组通道服务于 `api.desktopCapturer` / `api.capture` / `api.overlay`，属于宿主内部协议。
+
+| 方法 | 参数 | 返回值 | 适用范围 |
+| --- | --- | --- | --- |
+| `getDesktopSources` | `{ types?, thumbnailSize?, fetchWindowIcons? }` | `Promise<PluginDesktopSource[]>` | 枚举可录制的屏幕与窗口；对应 `api.desktopCapturer.getSources` |
+| `selectCaptureSource` | `{ sourceId?, speaker? }` | `Promise<boolean>` | 声明本次要采集哪个源，随后的 `getDisplayMedia` 据此授权 |
+| `getMediaAccessStatus` | `type: 'screen' \| 'microphone' \| 'camera'` | `Promise<PluginMediaAccessStatus>` | 系统级媒体权限状态；对应 `api.systemPreferences.getMediaAccessStatus` |
+| `selectScreenRegion` | 无 | `Promise<PluginScreenRect \| null>` | 桌面级区域选区；对应 `api.overlay.selectRegion` |
+
+屏幕采集的门禁同样在 `api` 层（`screen:capture`）。**会话持有是例外**：`holdSessionReset` 与 `hideMainWindowKeepAlive` 不需要权限，且不走 bridge——它们只在渲染层登记，宿主据此决定要不要在窗口隐藏后重置会话。
 
 ## 设置、主题与窗口外壳
 
