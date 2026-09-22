@@ -248,6 +248,53 @@ export type PluginMediaAccessType = 'screen' | 'microphone' | 'camera'
 
 export type PluginMediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
 
+/** 置顶悬浮窗的打开参数。 */
+export type PluginFloatWindowOptions = {
+  /** 窗口宽高（DIP）。默认 392 × 60。 */
+  width?: number
+  height?: number
+  /**
+   * 排除自身采集：不允许这个窗口出现在屏幕录制里。默认 `true`。
+   *
+   * **别关**：不排除的话，用户录完会发现录像里有一条控制条在飘，而且永久留在成品里。
+   */
+  excludeFromCapture?: boolean
+  /** 无焦点显示：弹出时不抢走用户正在操作的窗口焦点。默认 `true`。 */
+  showInactive?: boolean
+  /** 记住上次落点，下次在同一个位置打开。默认 `true`。 */
+  persistPosition?: boolean
+}
+
+/**
+ * 置顶悬浮窗：在所有应用之上开一个小窗，加载**插件自己的产物**。
+ *
+ * 分工是「窗口能力归宿主、样式归插件」——宿主负责置顶 / 透明无边框 / 不进任务栏 /
+ * 拖动跟手 / 排除自身采集，插件在自己的产物里渲染那条控制条。
+ *
+ * 悬浮窗里跑的是同一份插件代码，靠 `getWindowType() === 'float'` 认出自己那一侧。
+ */
+export type PluginFloatWindowApi = {
+  /** 打开悬浮窗（同一插件同时只留一个，重复调用会把它拎到前面）。需要 screen:capture。 */
+  open: (options?: PluginFloatWindowOptions) => Promise<boolean>
+  /**
+   * 关闭悬浮窗。需要 screen:capture。
+   *
+   * **停止任务时必须真的调到**：这个窗口不在任务栏、也没有别的关闭入口，
+   * 漏关的话用户屏幕上会永久留一条浮着的窗口。
+   */
+  close: () => Promise<boolean>
+  /** 按内容重新量一次尺寸；只改尺寸不动位置，越界值收窄到 200–900 × 40–320。需要 screen:capture。 */
+  resize: (size: { width: number; height: number }) => Promise<boolean>
+  /**
+   * 拖动三个信令：按下 → 拖动中（每次 pointermove）→ 抬手。需要 screen:capture。
+   *
+   * 位移由宿主按**屏幕坐标**算：多屏 + 混合 DPI 下渲染层拿不到准确的全局坐标，自己算会漂。
+   */
+  beginDrag: () => void
+  updateDrag: () => void
+  endDrag: () => void
+}
+
 export type PluginScreenCaptureApi = {
   /** 枚举可录制的屏幕与窗口（标题 / 缩略图 / 应用图标）；需要 screen:capture。 */
   desktopCapturer: {
@@ -269,6 +316,16 @@ export type PluginScreenCaptureApi = {
   overlay: {
     selectRegion: () => Promise<{ x: number; y: number; width: number; height: number } | null>
   }
+  /** 置顶悬浮窗：在所有应用之上开一个小窗加载插件自己的产物；需要 screen:capture。 */
+  floatWindow: PluginFloatWindowApi
+  /**
+   * 发一条消息给「另一个」插件窗口。需要 screen:capture。
+   *
+   * 方向由宿主按发送者身份判定：主窗口发出去 → 悬浮窗收到；悬浮窗发出去 → 主窗口收到。
+   */
+  postFloatMessage: (payload: unknown) => Promise<boolean>
+  /** 接收另一个插件窗口发来的消息；返回取消函数。需要 screen:capture。 */
+  onFloatMessage: (callback: (payload: unknown) => void) => () => void
   /**
    * 阻止主窗口隐藏后的会话重置，让插件页留在内存里。**不需要权限。**
    *
@@ -382,6 +439,20 @@ export type ToolZenPluginApi = {
   /** 桌面级区域选区；需要 screen:capture。 */
   overlay: PluginScreenCaptureApi['overlay']
   /**
+   * 置顶悬浮窗：在所有应用之上开一个小窗加载插件自己的产物；需要 screen:capture。
+   *
+   * 录屏期间的控制条这类「要浮在桌面最上层、不在任务栏、还要盖得住别的应用」的界面用它。
+   */
+  floatWindow: PluginScreenCaptureApi['floatWindow']
+  /**
+   * 发一条消息给「另一个」插件窗口；需要 screen:capture。
+   *
+   * 方向由宿主按发送者身份判定，插件不用自己判断。
+   */
+  postFloatMessage: PluginScreenCaptureApi['postFloatMessage']
+  /** 接收另一个插件窗口发来的消息；返回取消函数。需要 screen:capture。 */
+  onFloatMessage: PluginScreenCaptureApi['onFloatMessage']
+  /**
    * 阻止主窗口隐藏后的会话重置，让插件页留在内存里；**不需要权限**。
    *
    * 后台任务型插件（录制 / 导出 / 长轮询 / 批量处理）在窗口收起后会因会话重置被卸载，
@@ -426,8 +497,12 @@ export type ToolZenPluginApi = {
   getPluginInfo: () => PluginInfo
   /** 读取安装时保存的插件配置副本。 */
   getPluginConfig: <T extends Record<string, unknown> = Record<string, unknown>>() => T
-  /** 读取当前插件窗口类型。 */
-  getWindowType: () => 'main' | 'detach'
+  /**
+   * 读取当前插件实例所在的窗口形态：主窗体 `'main'`、独立窗口 `'detach'`、置顶悬浮窗 `'float'`。
+   *
+   * 悬浮窗里跑的是同一份插件代码，靠它认出自己那一侧只渲染控制条。不需要权限。
+   */
+  getWindowType: () => 'main' | 'detach' | 'float'
   /** 读取应用名称。 */
   getAppName: () => Promise<string>
   /** 读取应用版本。 */

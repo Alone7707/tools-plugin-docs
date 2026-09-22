@@ -137,6 +137,86 @@ api.holdSessionReset(held: boolean): Promise<boolean>
 配套的快捷方法见[窗口](/api/window)的 `api.hideMainWindowKeepAlive()`——「收起窗口 + 别卸载我」
 一次搞定。
 
+### floatWindow
+
+在**所有应用之上**开一个小窗，加载**插件自己的产物**。用途是录屏期间的控制条这类
+「要浮在桌面最上层、不在任务栏、还要盖得住别的应用」的界面。
+
+分工是**窗口能力归宿主、样式归插件**：宿主负责置顶 / 透明无边框 / 不进任务栏 / 拖动跟手 /
+排除自身采集，插件在自己的产物里渲染那条控制条。
+
+```ts
+type PluginFloatWindowOptions = {
+  width?: number                // DIP，默认 392
+  height?: number               // DIP，默认 60
+  excludeFromCapture?: boolean  // 排除自身采集，默认 true
+  showInactive?: boolean        // 无焦点显示，默认 true
+  persistPosition?: boolean     // 记住上次落点，默认 true
+}
+
+api.floatWindow.open(options?: PluginFloatWindowOptions): Promise<boolean>
+api.floatWindow.close(): Promise<boolean>
+api.floatWindow.resize(size: { width: number; height: number }): Promise<boolean>
+api.floatWindow.beginDrag(): void
+api.floatWindow.updateDrag(): void
+api.floatWindow.endDrag(): void
+```
+
+```js
+// 开始录制：先开悬浮控制条，再收起主窗口
+await api.floatWindow.open({ width: 392, height: 60 })
+
+// ... 录制中 ...
+
+// 停止录制：必须真的关掉
+await api.floatWindow.close()
+```
+
+悬浮窗里跑的是**同一份插件代码**，靠 `api.getWindowType() === 'float'` 认出自己那一侧，
+只渲染控制条而不是完整界面：
+
+```js
+if (api.getWindowType() === 'float') {
+  // 只渲染那条控制条
+  return
+}
+// 否则渲染完整界面
+```
+
+两个窗口之间用消息通道通信：
+
+```ts
+api.postFloatMessage(payload: unknown): Promise<boolean>  // 发给「另一个」插件窗口
+api.onFloatMessage(callback: (payload: unknown) => void): () => void
+```
+
+```js
+// 主窗口：把计时推给控制条
+setInterval(() => { api.postFloatMessage({ elapsed }) }, 250)
+
+// 控制条：接收状态、把「结束」转发回去
+const off = api.onFloatMessage((payload) => {
+  if (payload?.action === 'stop') return
+  elapsed.value = payload?.elapsed
+})
+```
+
+**方向由宿主按发送者身份判定**：主窗口发出去 → 悬浮窗收到；悬浮窗发出去 → 主窗口收到。
+两个窗口调的是同一个方法，插件不用自己判断方向。
+
+几条必须知道的约束：
+
+| 约束 | 说明 |
+| --- | --- |
+| **`excludeFromCapture` 默认开着，别关** | 不排除自身采集的话，用户录完会发现录像里有一条控制条在飘，而且永久留在成品里 |
+| **同一插件只有一个悬浮窗** | 重复 `open()` 会把它拎到前面，不叠第二个 |
+| **`close()` 必须真的调到** | 这个窗口不在任务栏、也没有别的关闭入口，漏关的话用户屏幕上会永久留一条浮着的窗口，只能重启客户端。宿主在插件页卸载 / 停用 / 删除时会兜底关一次 |
+| **拖动位移由宿主按屏幕坐标算** | 多屏 + 混合 DPI 下渲染层拿不到准确的全局坐标，自己算会漂。插件只给三个信令 |
+| **`resize` 只改尺寸不动位置** | 越界值收窄到 200–900 × 40–320 |
+
+> **窗口尺寸会带一圈非客户区**：Windows 上无边框透明窗实测请求 `392×60` 拿到 `396×65`。
+> 这是平台行为，按内容算高度时留一点余量即可。
+
 ## screenColorPick
 
 调起全屏取色器。用户完成取色后返回十六进制颜色，取消时返回 `null`。

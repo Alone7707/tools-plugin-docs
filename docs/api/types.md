@@ -87,9 +87,16 @@ type PluginCaptureStreamOptions = {
 }
 type PluginMediaAccessType = 'screen' | 'microphone' | 'camera'
 type PluginMediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
+type PluginFloatWindowOptions = {
+  width?: number
+  height?: number
+  excludeFromCapture?: boolean
+  showInactive?: boolean
+  persistPosition?: boolean
+}
 ```
 
-完整声明包含 `ToolZenPluginApi`、剪贴板、文件（含 `file.write`）、网络、屏幕采集（`desktopCapturer` / `capture` / `systemPreferences` / `overlay`）、会话持有（`holdSessionReset` / `hideMainWindowKeepAlive`）、运行环境、主题事件、JSON 存储、字符串存储、进入/退出事件和独立窗口参数。插件组件仍应把 `api` 视为可空值，因为浏览器预览或非宿主加载环境不会提供它。
+完整声明包含 `ToolZenPluginApi`、剪贴板、文件（含 `file.write`）、网络、屏幕采集（`desktopCapturer` / `capture` / `systemPreferences` / `overlay` / `floatWindow`）、会话持有（`holdSessionReset` / `hideMainWindowKeepAlive`）、运行环境、主题事件、JSON 存储、字符串存储、进入/退出事件和独立窗口参数。插件组件仍应把 `api` 视为可空值，因为浏览器预览或非宿主加载环境不会提供它。
 
 ## 权限与类型的对应
 
@@ -97,5 +104,5 @@ type PluginMediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restri
 |------|----------|
 | `file:read` / `file:write` | `PluginFileScanResult`、`PluginFileEntry`、`PluginFileRenameResult`、`PluginFileWriteRequest`、`PluginFileWriteResult` |
 | `network:fetch` | `PluginNetworkApi` |
-| `screen:capture` | `PluginDesktopSource`、`PluginDesktopSourcesOptions`、`PluginCaptureStreamOptions`、`PluginMediaAccessStatus`、`PluginScreenRect` |
-| 不需要权限 | `PluginScreenPoint` / `PluginScreenRect`（显示器查询）、`PluginDisplayInfo`、会话持有相关方法 |
+| `screen:capture` | `PluginDesktopSource`、`PluginDesktopSourcesOptions`、`PluginCaptureStreamOptions`、`PluginMediaAccessStatus`、`PluginScreenRect`、`PluginFloatWindowOptions` |
+| 不需要权限 | `PluginScreenPoint` / `PluginScreenRect`（显示器查询）、`PluginDisplayInfo`、会话持有相关方法、`getWindowType` |
