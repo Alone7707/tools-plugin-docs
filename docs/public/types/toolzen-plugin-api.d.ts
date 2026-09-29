@@ -507,6 +507,27 @@ export type ToolZenPluginApi = {
   getAppName: () => Promise<string>
   /** 读取应用版本。 */
   getAppVersion: () => Promise<string>
+  /**
+   * 读取宿主 API 级别。
+   *
+   * **不要用 getAppVersion() 判断能力**——版本号里既有修 bug 也有加能力，比较版本号迟早误判。
+   *
+   * 老宿主上这个方法不存在，探测请写成
+   * `typeof api.getApiLevel === 'function' ? api.getApiLevel() : 1`，
+   * 或用 hasCapability 的兜底写法（见文档「版本与兼容性」）。
+   */
+  getApiLevel: () => number
+  /**
+   * 宿主是否具备某个能力（名字与 permissions 一致，如 `screen:capture`）。
+   *
+   * 注意它回答的是「**宿主会不会**」，不代表「**你的插件有没有被授权**」——
+   * 后者看 manifest 的 permissions。两者都要满足才能真正调用。
+   *
+   * 老宿主上这个方法不存在，直接调用会抛 TypeError，务必用 typeof 兜底。
+   */
+  hasCapability: (name: string) => boolean
+  /** 宿主全部能力名（按首次出现的 apiLevel 排序）。同样受老宿主缺方法的影响。 */
+  getCapabilities: () => string[]
   /** 读取 Electron 平台标识。 */
   getPlatform: () => string
   /** 判断是否为本地调试插件。 */

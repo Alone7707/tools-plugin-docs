@@ -31,6 +31,16 @@ const siteConfigOptions = {
           ]
         },
         {
+          text: '规范与兼容',
+          items: [
+            { text: 'manifest.json 字段', link: '/manifest' },
+            { text: '权限与能力矩阵', link: '/permissions' },
+            { text: '版本与兼容性', link: '/compatibility' },
+            { text: '运行模型与目录结构', link: '/runtime' },
+            { text: '规范参考', link: '/reference' }
+          ]
+        },
+        {
           text: 'API 参考',
           items: [
             { text: 'API 总览', link: '/api/plugin-api' },
@@ -45,13 +55,9 @@ const siteConfigOptions = {
             { text: '屏幕', link: '/api/screen' },
             { text: '用户', link: '/api/user' },
             { text: '数据存储', link: '/api/db' },
-            { text: '动态指令', link: '/api/features' }
-          ]
-        },
-        {
-          text: '说明',
-          items: [
-            { text: 'manifest.json 字段', link: '/manifest' }
+            { text: '动态指令', link: '/api/features' },
+            { text: '类型与契约', link: '/api/contracts' },
+            { text: 'TypeScript 类型', link: '/api/types' }
           ]
         }
       ]

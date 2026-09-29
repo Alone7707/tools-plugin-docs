@@ -22,6 +22,9 @@
   "keywords": ["count", "word", "字数"],
   "tags": ["文本", "效率"],
   "permissions": ["clipboard:write"],
+  "minApiLevel": 1,
+  "requires": [],
+  "optional": [],
   "features": [
     {
       "name": "字数统计",
@@ -71,6 +74,9 @@
 | `keywords` | `string[]` | 否 | `[]` | 搜索关键词，最多 10 项，每项最多 30 个字符。建议包含中英文同义词。 |
 | `tags` | `string[]` | 否 | `[]` | 商店详情页展示标签，最多 10 项，每项最多 30 个字符。 |
 | `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write`、`screen:capture`。详见[权限与能力矩阵](/permissions)。 |
+| `minApiLevel` | `number` | 否 | — | 宿主 API 级别下限，≥ 1 的整数。不声明表示不挑宿主。可以不写，让宿主按 `requires` 推导；写了就必须 ≥ `requires` 隐含的级别，否则上传会被打回。详见[版本与兼容性](/compatibility)。 |
+| `requires` | `string[]` | 否 | `[]` | **硬依赖**的宿主能力，最多 12 项，取值同 `permissions` 白名单。缺任一项时宿主拒绝打开插件并显示升级提示页。**只有整个插件在旧客户端上毫无意义时才用**——能用降级解决的优先写 `optional`。 |
+| `optional` | `string[]` | 否 | `[]` | **可选**的宿主能力，最多 12 项。缺失时插件照常加载，宿主提示「有几项功能在当前客户端不可用」。 |
 | `features` | `Feature[]` | 否 | `[]` | 插件功能点及其主搜索触发方式，最多 12 项。字段见下文。 |
 | `clipboardRules` | `ClipboardRule[]` | 否 | `[]` | 全局快捷键唤出时的剪贴板识别规则，最多 8 条。字段见下文。 |
 | `config` | `object` | 否 | `{}` | 插件默认配置。最多 20 个键，值只能是 `string`、`number` 或 `boolean`；运行时通过 `config` prop 读取。 |

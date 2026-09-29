@@ -19,6 +19,15 @@
 
 上传界面会按服务端规则校验清单和文件：`manifest.code` 必须与插件记录一致，`manifest.entry` 必须指向包内文件，文件数量、大小、目录深度和扩展名也必须符合限制。只选择 `dist` 目录，不要选择源码工程根目录，也不要上传 `src`、`node_modules` 或手动制作的 ZIP。
 
+兼容性声明也会在这一步校验，以下情况会被 400 打回（提示里会列出全部问题）：
+
+- `requires` / `optional` 里出现未登记的能力名；
+- 同一能力同时写在 `requires` 和 `optional`（自相矛盾）；
+- `minApiLevel` 不是 ≥ 1 的整数，或超过上限；
+- `minApiLevel` 低于 `requires` 隐含的级别。
+
+各字段的取值与规则见[manifest.json 字段参考](/manifest)，能力协商机制见[版本与兼容性](/compatibility)。
+
 ## 审核与发布
 
 ```text

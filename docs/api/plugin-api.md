@@ -27,7 +27,7 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 | [输入](/api/input) | `initialText`、`enterAction`、后续输入处理 |
 | [文件](/api/file) | `getPathForFile`、`file.scan`、`file.exists`、`file.reveal`、`file.grant`、`file.rename`、`file.write` |
 | [网络](/api/network) | `api.network.fetch`、宿主主进程代发请求、响应流式读取与错误码 |
-| [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
+| [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getApiLevel`、`hasCapability`、`getCapabilities`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
 | [屏幕](/api/screen) | `desktopCapturer.getSources`、`capture.getStream`、`systemPreferences.getMediaAccessStatus`、`overlay.selectRegion`、`floatWindow.*`、`postFloatMessage` / `onFloatMessage`、`holdSessionReset`、`screenColorPick`、显示器查询、鼠标坐标和 DIP 坐标转换 |
 | [窗口](/api/window) | `hideMainWindow`、`hideMainWindowKeepAlive`、`holdSessionReset`、`outPlugin`、`setExpendHeight`、`detachWindow`、独立窗口 |
 | [用户](/api/user) | `pluginCode`、`getPluginInfo`、`getPluginConfig`、账号与插件身份边界 |
@@ -37,6 +37,8 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 ## 通用约定
 
 - 事件监听方法返回取消函数，组件卸载时必须调用。
+- **判断宿主能力用 `api.hasCapability()` 或 `api.getApiLevel()`，不要解析 `getAppVersion()` 的版本号。** 版本号里既有修 bug 也有加能力，拿它当能力判据迟早误判。注意 `hasCapability` 本身在老客户端上不存在，调用前要判 `typeof`——写法见[版本与兼容性](/compatibility)。
+- 插件声明了 `requires` / `optional` 之后，宿主会在加载前替你判定能不能跑：缺 `requires` 直接拦在升级提示页，缺 `optional` 只提示「有几项功能不可用」。能用降级解决的优先写 `optional`。
 - 全局快捷键跟着插件实例走：插件退出时宿主自动注销，不需要在 `onPluginOut` 里额外收尾。
 - `Promise<boolean>` 返回 `false` 时表示动作未完成或被宿主拒绝。
 - 原生文件对话框需要在 `manifest.permissions` 中声明 `file:dialog`；未声明时不会弹出系统窗口。

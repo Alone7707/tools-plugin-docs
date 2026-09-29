@@ -100,6 +100,49 @@ api.getAppName(): Promise<string>
 api.getAppVersion(): Promise<string>
 ```
 
+> `getAppVersion()` 返回的是给人看的版本号（如 `0.0.29`）。**不要拿它判断宿主有没有某个能力**——版本号里既有修 bug 也有加能力，比较版本号迟早误判。判断能力请用下面的 `getApiLevel()` / `hasCapability()`。
+
+### getApiLevel / hasCapability / getCapabilities
+
+探测宿主具备哪些能力。宿主 API 级别（`apiLevel`）**只增不减**：新增能力时 +1，级别越高能力越多。
+
+```ts
+api.getApiLevel(): number
+api.hasCapability(name: string): boolean
+api.getCapabilities(): string[]
+```
+
+| 接口 | 说明 |
+| --- | --- |
+| `getApiLevel()` | 宿主 API 级别。当前：1 = 首批能力，2 = 屏幕采集 |
+| `hasCapability(name)` | 宿主是否具备某个能力，名字与 `permissions` 一致（如 `screen:capture`） |
+| `getCapabilities()` | 宿主全部能力名，按首次出现的级别排序 |
+
+**这三个接口不需要任何权限**：它们只回答「宿主会不会」，不读也不改用户数据。
+
+**注意区分两件事**：`hasCapability()` 回答的是「**这台客户端会不会**」，不代表「**你的插件有没有被授权**」。后者看 `manifest.permissions`，由权限门管。两者都要满足才能真正调用——能力缺失是版本问题（要升级客户端），权限缺失是插件自身声明问题（改 manifest 重发即可）。
+
+**老客户端上这三个方法不存在**，直接调用会抛 `TypeError`。必须用兜底写法：
+
+```js
+/** 探测宿主能力；老客户端没有 hasCapability，缺方法即视为不支持。 */
+function supports(api, name) {
+  try {
+    return typeof api.hasCapability === 'function' && api.hasCapability(name) === true
+  } catch {
+    return false
+  }
+}
+
+if (supports(api, 'screen:capture')) {
+  const stream = await api.capture.getStream({ sourceId })
+} else {
+  api.toast('屏幕录制需要升级 ToolZen 客户端')
+}
+```
+
+更省事的做法是在 `manifest.json` 里声明 `requires` / `optional`，让宿主在加载前替你判定，并把结果直接告诉用户。详见[版本与兼容性](/compatibility)。
+
 ### getPlatform
 
 返回 Electron 的平台标识，例如 `win32`、`darwin`、`linux`。
