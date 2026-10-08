@@ -1,10 +1,12 @@
 # 文件
 
-文件 API 面向「用户把文件交给插件」这一类场景：读取剪贴板里的文件、还原拖入文件的路径、按需扫描文件信息，以及在用户明确同意后批量重命名。所有参数都是绝对路径，相对路径不会被受理。
+文件 API 面向「用户把文件交给插件」这一类场景：读取剪贴板里的文件、还原拖入文件的路径、按需扫描文件信息、**按偏移读取文件内容**，以及在用户明确同意后批量重命名或写入。所有参数都是绝对路径，相对路径不会被受理。
 
-文件能力分成两层权限：`file:read` 管读取（`file.scan`、`file.exists`、`file.reveal`），`file:write` 管写入（`file.grant`、`file.rename`、`file.write`）。写在 `manifest.json` 的 `permissions` 里。
+文件能力分成三层权限：`file:read` 管**元信息**（`file.scan`、`file.exists`、`file.reveal`），`file:read-content` 管**文件内容**（`file.read`），`file:write` 管写入（`file.grant`、`file.rename`、`file.write`）。写在 `manifest.json` 的 `permissions` 里。
 
-写入的底线只有一条：**重命名与写入只会碰本会话已登记进授权集合的路径**。这个集合由宿主维护，不随清单上的权限字符串放大；剪贴板文件和文件对话框选中的路径由宿主自动登记，用户拖进插件自己拖放区的文件则需要插件显式 `grant`。
+> `file:read` 与 `file:read-content` 是两项权限，不是一项。理由见[权限与能力矩阵](/permissions)：`file:read` 自 1 级起就发给插件了，若把「读字节」并进同一个名字，已发布插件会静默获得读任意文件内容的能力。
+
+写入的底线只有一条：**重命名与写入只会碰本会话已登记进授权集合的路径**。这个集合由宿主维护，不随清单上的权限字符串放大；剪贴板文件和文件对话框选中的路径由宿主自动登记，用户拖进插件自己拖放区的文件则需要插件显式 `grant`。**读取内容受同一层护栏约束**（比 `scan` 更严，`scan` 只看权限声明）。
 
 ## 插件怎么拿到剪贴板里的文件
 
@@ -94,7 +96,7 @@ const paths = Array.from(event.dataTransfer.files)
   .filter(Boolean)
 ```
 
-拖进插件自己拖放区的文件**不会被自动登记**：必须先用 `api.getPathForFile(file)` 拿到绝对路径，再调用 `api.file.grant([path])`，之后才允许重命名它。对已经登记过的路径重复 `grant` 是无害的空操作。插件自己拼出来的路径、或者从其他途径拿到的路径，同样要先 `grant`。
+拖进插件自己拖放区的文件**不会被自动登记**：必须先用 `api.getPathForFile(file)` 拿到绝对路径，再调用 `api.file.grant([path])`，之后才允许重命名它、**读取它的内容**或写入。对已经登记过的路径重复 `grant` 是无害的空操作。插件自己拼出来的路径、或者从其他途径拿到的路径，同样要先 `grant`。
 
 ## file.scan
 
@@ -195,7 +197,7 @@ const revealed = await api.file.reveal(outputPath)
 
 ## file.grant
 
-把绝对路径登记进本会话的**已授权集合**——也就是 `rename` 会接受的集合。需要 `file:write`。只接受绝对路径，其余路径会以 `reason: 'invalid'` 出现在 `rejected` 里。
+把绝对路径登记进本会话的**已授权集合**——也就是 `rename`、`write` 与 `read` 会接受的集合。需要 `file:write`。只接受绝对路径，其余路径会以 `reason: 'invalid'` 出现在 `rejected` 里。
 
 宿主只自动登记三类路径：从剪贴板读到的文件（`api.readClipboardFiles()` 读到的，以及 `type: 'file'` 进入动作带过来的）、用户在 `showOpenDialog` / `showSaveDialog` 中选中的路径，以及用户粘贴到启动器搜索框的文件。用户拖进插件自己拖放区的文件**不在**其中，那类文件必须由插件自己调用 `grant`。对已经登记过的路径重复 `grant` 是无害的空操作，可以放心把整批候选路径直接交进来。这个集合只活在本次应用会话里，**永不持久化**，重启客户端即清空。
 
@@ -340,6 +342,61 @@ if (blocked.length === 0) {
 }
 ```
 
+## file.read
+
+按偏移读取文件**内容**。需要 `file:read-content`——**不是** `file:read`。
+
+```ts
+type PluginFileReadResult = {
+  ok: boolean
+  data?: ArrayBuffer    // 本次读到的字节；读到一个空块且 eof 为 true 表示已到末尾
+  size?: number         // 文件总大小，便于算进度
+  eof?: boolean         // 本次是否已读到文件末尾
+  code?: 'invalid' | 'not-granted' | 'ENOENT' | 'EISDIR' | 'EACCES' | 'EBUSY' | 'failed'
+  message?: string
+}
+
+api.file.read(request: {
+  path: string      // 目标绝对路径；必须已在本会话的授权范围内
+  offset?: number   // 起始字节偏移，默认 0
+  length?: number   // 本次最多读多少字节，默认到文件末尾（单次上限 64MB）
+}): Promise<PluginFileReadResult>
+```
+
+它解决的是「插件手里只有路径、却拿不到文件字节」这个问题。**分块循环**是它的主要用法——`size` 与 `eof` 就是为此准备的，不必先 `scan` 一次：
+
+```js
+let offset = 0
+for (;;) {
+  const chunk = await api.file.read({ path, offset, length: 4 * 1024 * 1024 })
+
+  if (!chunk.ok) {
+    api.toast(`读取失败：${chunk.message || chunk.code}`)
+    break
+  }
+  if (chunk.data.byteLength) await send(chunk.data)   // 边读边发，内存里只留这一块
+  offset += chunk.data.byteLength
+  if (chunk.eof) break
+}
+```
+
+要点：
+
+- **`offset` 已到或超过文件末尾**时返回 `ok: true` + 空 `data` + `eof: true`，**不是错误**。循环写法因此不必自己比较 `size`。
+- **单次上限 64MB**（`length` 超过会被收窄到这个值）。比写入的 512MB 小是有意的：读回来的字节要在渲染进程里再驻留一份。
+- **只受理本会话已授权集合里的路径**，与 `file.write` 同一层护栏。没 `grant` 过的路径回 `not-granted`——这条比 `scan` 严，因为交出去的是文件内容本身。
+- 拖入插件自身拖放区的文件要先 `api.getPathForFile(file)` 拿路径，再 `api.file.grant([path])`。
+- 读目录回 `EISDIR`；文件不存在回 `ENOENT`；没有系统权限回 `EACCES`。
+
+```js
+const target = await api.showOpenDialog({ title: '选择要发送的文件' })
+if (target.length) {
+  // 对话框选中的路径由宿主自动登记，可以直接读。
+  const head = await api.file.read({ path: target[0], length: 1024 })
+  if (head.ok) console.log('文件大小', head.size)
+}
+```
+
 ## file.write
 
 把二进制内容写入磁盘，返回**真实落盘路径**。需要 `file:write`。
@@ -357,6 +414,8 @@ api.file.write(request: {
   name?: string                             // 文件名，仅作参考
   data: ArrayBuffer | ArrayBufferView       // 二进制内容
   mimeType?: string                         // MIME 类型，仅作参考
+  offset?: number                           // 写入起点（字节）；不传即「从 0 整份覆盖」
+  truncate?: boolean                        // 写完截断到「offset + 本次长度」
 }): Promise<PluginFileWriteResult>
 ```
 
@@ -387,13 +446,38 @@ if (written.ok) {
 }
 ```
 
+### 续写（`offset` / `truncate`）
+
+传 `offset` 就从该位置落笔，**不截断**，用于「边收边落盘」的大文件传输——内存恒定，断线时已落盘的部分还在：
+
+```js
+// 收到第 N 片就写第 N 片，不必把整份文件攒在内存里。
+let received = 0
+for await (const piece of incoming) {
+  const written = await api.file.write({ path: target, data: piece, offset: received })
+  if (!written.ok) throw new Error(written.message)
+  received += piece.byteLength
+}
+// 收尾时按实际长度截断，清掉上一次遗留的多余尾巴（断点续传重传变短的场景）。
+await api.file.write({ path: target, data: new ArrayBuffer(0), offset: received, truncate: true })
+```
+
+语义要点：
+
+| 传参 | 行为 |
+| --- | --- |
+| 不传 `offset` | **从 0 整份覆盖，并截断**到本次写入的长度（与旧版一致，不留上一次的尾巴） |
+| 传 `offset: 0` | 同上：从 0 覆盖并截断 |
+| 传 `offset > 0` | 从该偏移落笔，**不截断**；目标不存在时新建（前面的空洞按 0 填充） |
+| 传 `truncate: true` | 写完把文件截断到 `offset + 本次写入长度` |
+
+父目录不存在时宿主会自动补建，所以往「已授权目录 + 新的子路径」写不需要先建目录。
+
 失败码：
 
 | `code` | 含义 |
 | --- | --- |
-| `invalid` | 路径为空 / 不是绝对路径，或 `data` 不是二进制。 |
-| `not-granted` | 路径不在本会话的已授权集合里（插件自己拼的路径会走到这里）。 |
-| `EFBIG` | 内容超过单次上限（512MB）。 |
-| `failed` | 操作系统拒绝了写入，原始信息在 `message` 里。 |
-
-父目录不存在时宿主会自动补建，所以往「已授权目录 + 新的子路径」写不需要先建目录。
+| `invalid` | 路径为空 / 不是绝对路径，`data` 不是二进制，或 `offset` 是负数 |
+| `not-granted` | 路径不在本会话的已授权集合里（插件自己拼的路径会走到这里） |
+| `EFBIG` | 内容超过单次上限（512MB） |
+| `failed` | 操作系统拒绝了写入，原始信息在 `message` 里 |

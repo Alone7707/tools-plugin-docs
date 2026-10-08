@@ -103,6 +103,8 @@ type PluginFloatWindowOptions = {
 | 权限 | 相关类型 |
 |------|----------|
 | `file:read` / `file:write` | `PluginFileScanResult`、`PluginFileEntry`、`PluginFileRenameResult`、`PluginFileWriteRequest`、`PluginFileWriteResult` |
+| `file:read-content` | `PluginFileReadRequest`、`PluginFileReadResult` |
+| `lan:discover` | `PluginLanAdvertiseRequest`、`PluginLanAdvertiseResult`、`PluginLanDiscoverRequest`、`PluginLanDiscoverResult`、`PluginLanPeer`、`PluginLocalAddress` |
 | `network:fetch` | `PluginNetworkApi` |
 | `screen:capture` | `PluginDesktopSource`、`PluginDesktopSourcesOptions`、`PluginCaptureStreamOptions`、`PluginMediaAccessStatus`、`PluginScreenRect`、`PluginFloatWindowOptions` |
-| 不需要权限 | `PluginScreenPoint` / `PluginScreenRect`（显示器查询）、`PluginDisplayInfo`、会话持有相关方法、`getWindowType` |
+| 不需要权限 | `PluginScreenPoint` / `PluginScreenRect`（显示器查询）、`PluginDisplayInfo`、`PluginQrCodeRequest`、`PluginQrCodeResult`、会话持有相关方法、`getWindowType` |

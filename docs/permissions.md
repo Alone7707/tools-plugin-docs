@@ -32,8 +32,10 @@
 | `clipboard:write` | 将结果写入系统剪贴板或清空剪贴板 | `api.copyText(text)`、`api.copyClipboardImage(dataUrl)`、`api.clearClipboard()` | 不要覆盖用户剪贴板而不提示 |
 | `network:fetch` | 由宿主主进程代发网络请求 | `api.network.fetch()` | 不受同源策略（CORS）限制，可访问任意 `http(s)` 服务，且不带宿主自身 cookie；应披露数据去向 |
 | `file:dialog` | 打开系统文件选择或保存对话框 | `api.showOpenDialog()`、`api.showSaveDialog()` | 只读取用户主动选择的路径；宿主不替插件读写文件 |
-| `file:read` | 读取用户交给插件的文件信息 | `api.file.scan()`、`api.file.exists()`、`api.file.reveal()` | 只扫描必要的路径，不要遍历用户整个磁盘 |
+| `file:read` | 读取用户交给插件的文件**信息**（名称、大小、时间） | `api.file.scan()`、`api.file.exists()`、`api.file.reveal()` | 只扫描必要的路径，不要遍历用户整个磁盘。它**不返回文件内容** |
+| `file:read-content` | 按路径与偏移读取文件**内容** | `api.file.read()` | **能拿到文件字节本身**。只在用户明确选择/拖入的文件上读取，不要拿它遍历磁盘 |
 | `file:write` | 在用户本次授权范围内重命名文件、写入新文件 | `api.file.grant()`、`api.file.rename()`、`api.file.write()` | 会改动用户磁盘；先 `dryRun` 并把结果展示给用户。写入只受理用户交出来的路径 |
+| `lan:discover` | 在同网段播报自己的存在、搜索同网段的其它 ToolZen | `api.lan.advertise()`、`api.lan.discover()`、`api.lan.stop()` | 会向本地网络广播一个含 `payload` 的小报文（同网段可见）；不要把敏感信息放进 `payload` |
 | `screen:capture` | 枚举屏幕与窗口、采集画面与系统声音、区域选区、置顶悬浮窗 | `api.desktopCapturer.getSources()`、`api.capture.getStream()`、`api.overlay.selectRegion()`、`api.floatWindow.*` | **能拿到用户屏幕上的全部内容**，包括其它应用的窗口；只在用户明确发起录制后采集，不要后台常开，并说明录制内容存在哪里 |
 
 全局快捷键（`api.registerShortcut`）不需要声明权限：它只在插件运行期间生效，退出即自动注销，且组合键被宿主或其他应用占用时宿主会直接拒绝。它抢的是系统级键位，插件仍要挑得克制，并在注册失败时如实提示用户。
@@ -49,11 +51,32 @@
 | 文件层 | `api.file.*`（受 `file:read` / `file:write` 约束） | 是，但只在用户交出来的路径范围内 |
 | 屏幕采集层 | `api.desktopCapturer.*` / `api.capture.*` / `api.overlay.*`（受 `screen:capture` 约束） | 是，但只在用户发起录制之后 |
 
-文件层单独成层：`file:read` 覆盖 `file.scan` / `file.exists` / `file.reveal`，`file:write` 覆盖 `file.grant` / `file.rename` / `file.write`；`clipboard:read` 同时也是 `readClipboardFiles` 的前提。
+文件层单独成层，并且分成**三项**权限，别把它们当成一件事：
+
+| 权限 | 覆盖 | 给的是什么 |
+| --- | --- | --- |
+| `file:read` | `file.scan` / `file.exists` / `file.reveal` | 只有**元信息**（名称、大小、时间、是否目录） |
+| `file:read-content` | `file.read` | **文件字节本身** |
+| `file:write` | `file.grant` / `file.rename` / `file.write` | 写入与改名 |
+| `clipboard:read` | `readClipboardFiles` | 剪贴板里的文件路径 |
+
+`file:read` 与 `file:read-content` **刻意分开**：前者自 1 级起就发给插件了，用途只有元信息；如果把「读字节」并进同一个权限名，**已发布的插件会静默获得读任意文件内容的能力**——用户当初同意的是「读文件信息」，不是「读文件内容」。分开之后，商店与用户都能看到这次授权升级。
+
+读取内容的护栏比扫描更严：`file.scan` 只要求声明权限，而 `file.read` **只肯读本会话已授权集合里的路径**，没 `grant` 过的一律回 `not-granted`。拖进插件自身拖放区的文件要先 `api.getPathForFile()` + `api.file.grant()`。
+
+局域网层（`lan:discover`）也单独成层：播报与搜索要在**主进程**开一个组播套接字（渲染层不能监听端口），所以必须由宿主代劳。未声明 `lan:discover` 时 `advertise` / `discover` 回 `{ ok: false, code: 'invalid' }`、`stop` 回 `false`，一个包都不会发出去。详见[系统](/api/system)。
 
 屏幕采集层同样单独成层，原因和文件层一样：它有一部分必须在**主进程**执行。采集源无法在渲染层枚举（W3C 规范禁止 `enumerateDevices` 暴露它们，`desktopCapturer` 也只在主进程可用），`getDisplayMedia` 在没有宿主安装 request handler 时必抛 `NotSupportedError`，系统回环音频也只能由主进程给出。未声明 `screen:capture` 时：枚举回空数组、`getMediaAccessStatus` 回 `'unknown'`、`selectRegion` 回 `null`，而 `capture.getStream` **直接抛错**（静默给一条空流会让插件以为录上了）。详见[屏幕](/api/screen)。
 
-**不需要权限的两项**：`api.holdSessionReset()` 与 `api.hideMainWindowKeepAlive()` 只表达「别把本页卸载掉」，不读也不改用户数据，因此不走权限声明。它们解决的是「主窗口收起 30 秒后插件页被会话重置卸载、后台任务中断」这个问题。
+**不需要权限的四项**：
+
+| 接口 | 为什么不需要 |
+| --- | --- |
+| `api.holdSessionReset()` / `api.hideMainWindowKeepAlive()` | 只表达「别把本页卸载掉」，不读也不改用户数据 |
+| `api.renderQrCode()` | 纯计算：把一段文本画成图片，不碰用户任何数据 |
+| `api.getLocalAddresses()` | 只读本机网卡地址，不含用户数据；且这些地址在同网段本来就是公开的 |
+
+它们仍登记在**能力清单**里（`qrcode:render` / `lan:discover`），这样老客户端能被 `requires` 拦下，而不是加载起来再报一个看不懂的错。前面三项解决的是「主窗口收起 30 秒后插件页被会话重置卸载、后台任务中断」这个问题。
 
 `network:fetch` 的执行方式与文件能力不同：它对应 `api.network.fetch()`，请求由宿主**主进程**发出，不受渲染层同源策略约束，因此目标服务不需要返回 CORS 头。未声明 `network:fetch` 时 `api.network.fetch` 直接抛 `TypeError`（消息点明缺少哪个权限），不会发出任何请求。插件仍可继续使用全局 `fetch`，但它跑在渲染层、只能访问同源地址；老宿主没有 `api.network.fetch` 时应退回全局 `fetch`。详见[网络](/api/network)。
 

@@ -185,6 +185,35 @@ export type PluginFileWriteRequest = {
   data: ArrayBuffer | ArrayBufferView
   /** MIME 类型，仅作参考。 */
   mimeType?: string
+  /**
+   * 写入起点（字节）。不传时按 0 处理，即「从 0 开始整份覆盖」的老语义（会截断）。
+   *
+   * 传了就从该偏移落笔且**不截断**，用于边收边写的大文件传输；目标不存在时新建。
+   */
+  offset?: number
+  /** 写完把文件截断到「offset + 本次写入长度」；用于续传收尾时清掉遗留的多余尾巴。 */
+  truncate?: boolean
+}
+
+export type PluginFileReadRequest = {
+  /** 目标绝对路径；必须已在本次会话的已授权集合里。 */
+  path: string
+  /** 起始字节偏移，默认 0。 */
+  offset?: number
+  /** 本次最多读多少字节，默认到文件末尾；单次上限 64MB。 */
+  length?: number
+}
+
+export type PluginFileReadResult = {
+  ok: boolean
+  /** 本次读到的字节；读到一个空块且 eof 为 true 表示已经到末尾。 */
+  data?: ArrayBuffer
+  /** 文件总大小（字节），便于算进度。 */
+  size?: number
+  /** 本次是否已读到文件末尾。 */
+  eof?: boolean
+  code?: 'invalid' | 'not-granted' | 'ENOENT' | 'EISDIR' | 'EACCES' | 'EBUSY' | 'failed'
+  message?: string
 }
 
 export type PluginFileApi = {
@@ -203,8 +232,98 @@ export type PluginFileApi = {
    *
    * 只受理本次会话已授权集合内的路径（与 rename 同一层护栏）——最自然的用法是先
    * `showSaveDialog()` 让用户选位置（宿主会自动登记），再写。
+   *
+   * 传 `offset` 即可从中间续写（边收边落盘），不传则是「从 0 整份覆盖」的老语义。
    */
   write: (request: PluginFileWriteRequest) => Promise<PluginFileWriteResult>
+  /**
+   * 按偏移读取文件内容；需要 `file:read-content`——**不是** `file:read`。
+   *
+   * `file:read` 只给元信息，这个方法给的是文件字节本身，所以宿主单开了一项权限。
+   * 授权护栏与 write 同级：只读本次会话已授权集合内的路径，没 grant 过的回 `not-granted`。
+   *
+   * 循环读时靠 `size` 与 `eof` 判断结束，不必先 scan：
+   * ```js
+   * let offset = 0
+   * for (;;) {
+   *   const chunk = await api.file.read({ path, offset, length: 4 * 1024 * 1024 })
+   *   if (!chunk.ok) throw new Error(chunk.message)
+   *   if (chunk.data.byteLength) send(chunk.data)
+   *   offset += chunk.data.byteLength
+   *   if (chunk.eof) break
+   * }
+   * ```
+   */
+  read: (request: PluginFileReadRequest) => Promise<PluginFileReadResult>
+}
+
+export type PluginLanAdvertiseRequest = {
+  /** 服务标识，最长 40 字符；同一项服务的对端才会互相发现。 */
+  service: string
+  /** 展示名，通常是本机名。 */
+  name?: string
+  /** 交给对端的载荷，最长 2048 字符；连接码这类短文本走这里。 */
+  payload?: string
+}
+
+export type PluginLanAdvertiseResult = {
+  ok: boolean
+  /** 停止播报时用。 */
+  id?: string
+  name?: string
+  code?: string
+  message?: string
+}
+
+export type PluginLanDiscoverRequest = {
+  service: string
+  /** 等待时长（毫秒），默认 3000，上限 15000。 */
+  timeoutMs?: number
+}
+
+export type PluginLanPeer = {
+  id: string
+  service: string
+  name: string
+  /** 对端的局域网 IP。 */
+  address: string
+  payload: string
+}
+
+export type PluginLanDiscoverResult = {
+  ok: boolean
+  /** 只有这一轮听到的对端；每次调用会清掉上一轮的记录。 */
+  peers: PluginLanPeer[]
+  /** 组播被网络屏蔽时 ok 为 false，code 为 'unavailable'。 */
+  code?: string
+  message?: string
+}
+
+export type PluginLocalAddress = {
+  interface: string
+  address: string
+  family: 'IPv4' | 'IPv6'
+  /** 回环地址（127.0.0.1 / ::1）。 */
+  internal: boolean
+}
+
+export type PluginQrCodeRequest = {
+  text: string
+  /** 图片边长（像素），默认 320，范围 64–1024。 */
+  size?: number
+  /** 静默区宽度（模块数），默认 2，范围 0–8。 */
+  margin?: number
+  /** 纠错级别，默认 'M'。 */
+  level?: 'L' | 'M' | 'Q' | 'H'
+}
+
+export type PluginQrCodeResult = {
+  ok: boolean
+  /** PNG 的 Data URL，可直接喂给 copyClipboardImage 或 <img src>。 */
+  dataUrl?: string
+  size?: number
+  code?: string
+  message?: string
 }
 
 /** 一个可录制的采集源；需要 screen:capture。 */
@@ -422,8 +541,35 @@ export type ToolZenPluginApi = {
   onWindowHide: (callback: () => void) => () => void
   db: PluginDocumentStore
   dbStorage: PluginStringStore
-  /** 受控的文件读取与重命名能力；写操作只受理本次会话授权的路径。 */
+  /** 受控的文件读取与重命名能力；写操作与读内容只受理本次会话授权的路径。 */
   file: PluginFileApi
+  /**
+   * 局域网自动发现：让同一局域网内两台装了 ToolZen 的电脑互相看见；需要 lan:discover。
+   *
+   * 宿主在主进程代管组播套接字（渲染层不能监听端口），报文不出本地网络。
+   * 组播被网络屏蔽时 `advertise` / `discover` 会回 `ok: false`（`code: 'unavailable'`），
+   * 插件应退回手工交换连接码，而不是卡在「正在搜索」。
+   */
+  lan: {
+    /** 开始在同网段播报自己；返回的 id 交给 stop。窗口销毁时宿主自动收摊。 */
+    advertise: (request: PluginLanAdvertiseRequest) => Promise<PluginLanAdvertiseResult>
+    /** 搜一轮同网段的对端；语义是「探一次、等一会儿」，不是持续订阅。 */
+    discover: (request: PluginLanDiscoverRequest) => Promise<PluginLanDiscoverResult>
+    /** 停止播报；不传 id 时停掉本插件在当前窗口登记的全部广告。 */
+    stop: (id?: string) => Promise<boolean>
+  }
+  /**
+   * 列出本机网卡地址；**不需要权限**（只读、不含用户数据）。
+   *
+   * 用途是排查「两台电脑不在同一网段」。老宿主没有这条接口时回空数组。
+   */
+  getLocalAddresses: () => Promise<PluginLocalAddress[]>
+  /**
+   * 把一段文本渲染成二维码 PNG Data URL；**不需要权限**（纯计算）。
+   *
+   * 返回的地址可直接喂给 `copyClipboardImage`，也可以塞进 `<img src>`。
+   */
+  renderQrCode: (request: PluginQrCodeRequest) => Promise<PluginQrCodeResult>
   /** 由宿主主进程代发的网络请求，不受 CORS 限制；需要 network:fetch，未声明时 fetch 抛 TypeError。 */
   network: PluginNetworkApi
   /**

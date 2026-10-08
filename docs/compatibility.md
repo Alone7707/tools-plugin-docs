@@ -120,6 +120,7 @@ if (supports(api, 'screen:capture')) {
 | --- | --- |
 | 1 | `clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write` |
 | 2 | `screen:capture` |
+| 3 | `file:read-content`、`lan:discover`、`qrcode:render` |
 
 > **不要用 `getAppVersion()` 判断能力。** 版本号里既有修 bug 也有加能力，拿它比较迟早误判。判断能力请用 `apiLevel` 或 `hasCapability()`。
 

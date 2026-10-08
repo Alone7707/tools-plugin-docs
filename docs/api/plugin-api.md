@@ -25,9 +25,9 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 | [快捷键](/api/shortcut) | `registerShortcut`、`unregisterShortcut` |
 | [复制](/api/copy) | `copyText`、`readClipboardText`、`readClipboardImage`、`readClipboardFiles`、`clearClipboard`、`copyClipboardImage` |
 | [输入](/api/input) | `initialText`、`enterAction`、后续输入处理 |
-| [文件](/api/file) | `getPathForFile`、`file.scan`、`file.exists`、`file.reveal`、`file.grant`、`file.rename`、`file.write` |
+| [文件](/api/file) | `getPathForFile`、`file.scan`、`file.exists`、`file.reveal`、`file.read`、`file.grant`、`file.rename`、`file.write` |
 | [网络](/api/network) | `api.network.fetch`、宿主主进程代发请求、响应流式读取与错误码 |
-| [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`getAppName`、`getAppVersion`、`getApiLevel`、`hasCapability`、`getCapabilities`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
+| [系统](/api/system) | `toast`、`showNotification`、`showOpenDialog`、`showSaveDialog`、`shellBeep`、`shellOpenExternal`、`api.lan.*`、`getLocalAddresses`、`renderQrCode`、`getAppName`、`getAppVersion`、`getApiLevel`、`hasCapability`、`getCapabilities`、`getPlatform`、`isDev`、`isMacOS`、`isWindows`、`isLinux` |
 | [屏幕](/api/screen) | `desktopCapturer.getSources`、`capture.getStream`、`systemPreferences.getMediaAccessStatus`、`overlay.selectRegion`、`floatWindow.*`、`postFloatMessage` / `onFloatMessage`、`holdSessionReset`、`screenColorPick`、显示器查询、鼠标坐标和 DIP 坐标转换 |
 | [窗口](/api/window) | `hideMainWindow`、`hideMainWindowKeepAlive`、`holdSessionReset`、`outPlugin`、`setExpendHeight`、`detachWindow`、独立窗口 |
 | [用户](/api/user) | `pluginCode`、`getPluginInfo`、`getPluginConfig`、账号与插件身份边界 |
@@ -42,8 +42,10 @@ API 按用途拆分为独立页面。每个分类页分别说明能力用途、�
 - 全局快捷键跟着插件实例走：插件退出时宿主自动注销，不需要在 `onPluginOut` 里额外收尾。
 - `Promise<boolean>` 返回 `false` 时表示动作未完成或被宿主拒绝。
 - 原生文件对话框需要在 `manifest.permissions` 中声明 `file:dialog`；未声明时不会弹出系统窗口。
-- 文件读取需要 `file:read`，文件写入需要 `file:write`；`file.rename` 与 `file.write` 只受理本会话已登记进授权集合的路径，拖入插件自身拖放区的文件需要先调用 `api.file.grant()`。详见[文件](/api/file)。
+- 文件读取需要 `file:read`，**读取文件内容**需要 `file:read-content`，文件写入需要 `file:write`；`file.rename`、`file.write` 与 `file.read` 只受理本会话已登记进授权集合的路径，拖入插件自身拖放区的文件需要先调用 `api.file.grant()`。详见[文件](/api/file)。
 - 跨域网络请求需要 `network:fetch`，用 `api.network.fetch()` 由宿主主进程代发，不受 CORS 限制；未声明权限时它抛 `TypeError`。浏览器自带的 `fetch` 只适合同源场景。详见[网络](/api/network)。
+- 局域网自动发现需要 `lan:discover`，用 `api.lan.advertise()` / `api.lan.discover()` 让同网段的两台电脑互相看见；组播被网络屏蔽时会如实回 `ok: false`，插件应退回手工交换连接码。详见[系统](/api/system)。
+- `api.renderQrCode()`、`api.getLocalAddresses()`、`api.holdSessionReset()` 与 `api.hideMainWindowKeepAlive()` **不需要权限**（分别是纯计算、只读本机网卡、以及「别把我卸载掉」），但仍登记在能力清单里，便于老客户端被 `requires` 拦下。
 - 录屏 / 截屏需要 `screen:capture`：`api.desktopCapturer.getSources()` 枚举屏幕与窗口，`api.capture.getStream()` 按源取流（可带系统声音），`api.overlay.selectRegion()` 做桌面级区域选区。未声明权限时枚举回空数组、取流直接抛错。详见[屏幕](/api/screen)。
 - 剪贴板读写会按 `manifest.permissions` 做能力检查；未声明权限时返回空值或 `false`。
 - 插件不能直接调用 Node.js、Electron 主进程、`require` 或内部 IPC。

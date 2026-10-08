@@ -52,6 +52,9 @@ function subscribeTheme(api, onTheme) {
 - 原生文件对话框取消时分别返回空数组和空字符串；未声明 `file:dialog` 时不弹框。
 - 文件读取接口未声明 `file:read` 时不抛错，返回空信封：`file.scan` 返回 `{ ok: false, code: 'NOT_SUPPORTED', entries: [], errors: [], truncated: false }`，`file.exists` 返回 `{ ok: false, code: 'NOT_SUPPORTED', exists: [...] }`（`exists` 仍是与输入**等长**的 `false` 数组，保持按下标对应），`file.reveal` 返回 `false`，`readClipboardFiles` 返回空数组。
 - `file.rename` 未声明 `file:write` 时逐项返回 `results[].ok === false`、`code: 'NOT_SUPPORTED'`，诊断口径 `items[].status` 为 `failed`、`reason` 为 `permission-denied`，整批调用本身不抛错；`file.grant` 则返回 `{ ok: false, granted: [] }`，并把这类路径逐项写进 `rejected`，`reason` 为 `permission-denied`。授权范围之外的源路径不会被改动，只会计入 `not-granted`。
+- `file.write` 未声明 `file:write` 时返回 `{ ok: false, code: 'not-granted', message: '需要声明 file:write 权限' }`（注意 `code` 是 `not-granted` 而不是 `NOT_SUPPORTED`，与 `rename` 的信封口径不同）；`file.read` 未声明 `file:read-content` 时返回 `{ ok: false, code: 'invalid', message: '需要声明 file:read-content 权限' }`。两者都只受理本会话已授权集合内的路径，未授权的路径回 `not-granted`。
+- `api.lan.*` 未声明 `lan:discover` 时 `advertise` / `discover` 回 `{ ok: false, code: 'invalid' }`（`discover` 的 `peers` 是空数组），`stop` 回 `false`，一个组播包都不会发出去。组播被网络屏蔽时 `advertise` / `discover` 回 `{ ok: false, code: 'unavailable' }`——这与「搜到 0 个对端」（`ok: true, peers: []`）是**两种不同的含义**，插件应当区别对待。
+- `api.renderQrCode` 文本为空时回 `{ ok: false, code: 'invalid' }`；文本超出二维码容量时回 `{ ok: false, code: 'failed' }`，不会返回一张扫不出来的图。它不需要权限。
 - `file.rename` 的单项失败不会中断整批，每个条目各有 `results[].code` / `items[].status` 和 `reason` / `error`；顶层 `ok` 只在全部成功时为 `true`，`code` 取第一条失败项的错误码；一次调用超过 5000 项会直接报错。
 - `file.scan` 遇到不存在的路径也不抛错：该路径进 `errors`，`code` 为 `ENOENT`，不会出现在 `entries` 里，也不影响其他条目的返回。
 - `api.network.fetch` 未声明 `network:fetch` 时**直接抛 `TypeError`**（消息点明缺少哪个权限），不会发出请求。

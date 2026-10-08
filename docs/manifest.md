@@ -73,7 +73,7 @@
 | `icon` | `string` | 否 | `◆` | 字符或 emoji 图标最多 8 个字符；也可以填写最多 300 个字符的 `http(s)` 图片地址，或包内图片的相对路径。详见下文。 |
 | `keywords` | `string[]` | 否 | `[]` | 搜索关键词，最多 10 项，每项最多 30 个字符。建议包含中英文同义词。 |
 | `tags` | `string[]` | 否 | `[]` | 商店详情页展示标签，最多 10 项，每项最多 30 个字符。 |
-| `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:write`、`screen:capture`。详见[权限与能力矩阵](/permissions)。 |
+| `permissions` | `string[]` | 否 | `[]` | 插件需要的受控能力，必须使用权限白名单：`clipboard:read`、`clipboard:write`、`network:fetch`、`file:dialog`、`file:read`、`file:read-content`、`file:write`、`lan:discover`、`screen:capture`。详见[权限与能力矩阵](/permissions)。 |
 | `minApiLevel` | `number` | 否 | — | 宿主 API 级别下限，≥ 1 的整数。不声明表示不挑宿主。可以不写，让宿主按 `requires` 推导；写了就必须 ≥ `requires` 隐含的级别，否则上传会被打回。详见[版本与兼容性](/compatibility)。 |
 | `requires` | `string[]` | 否 | `[]` | **硬依赖**的宿主能力，最多 12 项，取值同 `permissions` 白名单。缺任一项时宿主拒绝打开插件并显示升级提示页。**只有整个插件在旧客户端上毫无意义时才用**——能用降级解决的优先写 `optional`。 |
 | `optional` | `string[]` | 否 | `[]` | **可选**的宿主能力，最多 12 项。缺失时插件照常加载，宿主提示「有几项功能在当前客户端不可用」。 |
@@ -269,7 +269,7 @@ src/main.js  →  pnpm build  →  dist/index.js
 }
 ```
 
-进入动作里有文件不等于拿到文件读写权限。要读取内容或改名，仍需在 `permissions` 中声明 `file:read` / `file:write`，细节见[文件](/api/file)与[事件、类型与错误](/api/contracts)。
+进入动作里有文件不等于拿到文件读写权限。要读取**信息**或改名，需在 `permissions` 中声明 `file:read` / `file:write`；要读取**文件内容**（`api.file.read`），还需额外声明 `file:read-content`。细节见[文件](/api/file)与[事件、类型与错误](/api/contracts)。
 
 ## `config` 默认配置
 

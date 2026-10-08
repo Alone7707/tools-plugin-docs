@@ -154,11 +154,17 @@
 | `fileReveal` | `path: string` | `Promise<boolean>` | 在系统文件管理器中选中路径；对应 `api.file.reveal` |
 | `fileGrant` | `paths: string[]` | `Promise<PluginFileGrantResult>` | 登记本次会话的授权路径集合；对应 `api.file.grant` |
 | `fileRename` | `request: PluginFileRenameRequest` | `Promise<PluginFileRenameResult>` | 批量重命名；对应 `api.file.rename` |
-| `writeFileContent` | `{ path, name?, data, mimeType? }` | `Promise<PluginFileWriteResult>` | 把二进制写入磁盘并回真实路径；对应 `api.file.write` |
+| `writeFileContent` | `{ path, name?, data, mimeType?, offset?, truncate? }` | `Promise<PluginFileWriteResult>` | 把二进制写入磁盘并回真实路径；`offset` 用于续写；对应 `api.file.write` |
+| `readFileContent` | `{ path, offset?, length? }` | `Promise<PluginFileReadResult>` | 按偏移读取文件内容；对应 `api.file.read`（需要 `file:read-content`） |
+| `advertiseLanService` | `{ service, name?, payload? }` | `Promise<PluginLanAdvertiseResult>` | 在同网段播报自己；对应 `api.lan.advertise`（需要 `lan:discover`） |
+| `discoverLanService` | `{ service, timeoutMs? }` | `Promise<PluginLanDiscoverResult>` | 搜一轮同网段对端；对应 `api.lan.discover` |
+| `stopLanService` | `{ id? }` | `Promise<{ ok: boolean }>` | 停止播报；对应 `api.lan.stop` |
+| `getLocalAddresses` | 无 | `Promise<PluginLocalAddress[]>` | 列出本机网卡地址；对应 `api.getLocalAddresses`（不需要权限） |
+| `renderQrCode` | `{ text, size?, margin?, level? }` | `Promise<PluginQrCodeResult>` | 渲染二维码 PNG Data URL；对应 `api.renderQrCode`（不需要权限） |
 | `getDroppedPath` | `file: File` | `string` | 拖入文件反查绝对路径；`api.getPathForFile` 的底层调用（同上文开发者专区表格） |
 | `onShortcutClipboardFileCandidate` | `(callback: (paths: string[]) => void)` | `() => void` | 主进程事件：剪贴板现在持有这些文件，呼出时触发；`[]` 表示清空候选 |
 
-**bridge 层自己不做任何权限检查**：`file:read` / `file:write` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()` 和 `api.file.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileScanResult`、`PluginFileExistsResult`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult`、`PluginFileWriteRequest`、`PluginFileWriteResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)。
+**bridge 层自己不做任何权限检查**：`file:read` / `file:read-content` / `file:write` / `lan:discover` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()`、`api.file.*` 与 `api.lan.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileScanResult`、`PluginFileExistsResult`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult`、`PluginFileWriteRequest`、`PluginFileWriteResult`、`PluginFileReadRequest`、`PluginFileReadResult`、`PluginLanAdvertiseRequest`、`PluginLanDiscoverResult`、`PluginLocalAddress`、`PluginQrCodeRequest`、`PluginQrCodeResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)、[系统](/api/system)。
 
 ## 屏幕采集（宿主内部）
 
