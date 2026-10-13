@@ -295,6 +295,8 @@ api.lan.scan(request: {
   devices: Array<{
     address: string
     mac: string         // 扫描后从系统邻居表补的；读不到是空串
+    hostname: string    // 确认在线后尽力解析的本地名称；解析不到是空串（不是 undefined）
+    hostnameSource: 'mdns' | 'netbios' | 'llmnr' | 'ssdp' | 'dns' | ''  // 名字来源，与 hostname 同时给出
     evidence: 'port-open' | 'host-rejected'
     openPorts: number[] // evidence 为 'host-rejected' 时是空数组
     self: boolean
@@ -340,7 +342,8 @@ if (!result.ok) {
 }
 
 for (const device of result.devices) {
-  console.log(device.address, device.mac, device.openPorts.join('/'))
+  // 有名字就显示名字，没有就退回地址——hostname 永远是字符串，不必判 undefined。
+  console.log(device.hostname || device.address, device.mac, device.openPorts.join('/'))
 }
 
 // 结果不全时如实告诉用户，而不是假装扫完了。
@@ -359,6 +362,26 @@ if (result.code === 'timeout' || result.coverage.truncated) {
 **系统 ARP 缓存不参与在线判定。** 那张表里的条目能存活很久，拔了网线、关了机的机器照样躺在里面；拿它当依据，界面上就会一直挂着一台早就不在的设备。宿主只在**已经确认在线之后**才从邻居表给设备补 `mac` 字段，所以 `mac` 为空只说明读不到，不代表设备不在线。
 
 反过来说：**没响应就是没进清单**。防火墙静默丢弃（DROP）的设备是扫不出来的，这与「不在线」在结果上无法区分——插件不要把它解释成「这台机器肯定不在」。
+
+### 设备名（hostname）
+
+确认一台设备在线之后，宿主会**尽力**解析一次它的本地名称，填进 `hostname`，并用 `hostnameSource` 说明这个名字是从哪儿来的：
+
+| `hostnameSource` | 来源 | 典型设备 |
+|---|---|---|
+| `'mdns'` | mDNS（224.0.0.251:5353） | Apple 设备、打印机、Linux 主机 |
+| `'llmnr'` | LLMNR（224.0.0.252:5355） | Windows 机器 |
+| `'netbios'` | NetBIOS 名字服务（UDP 137） | Windows 机器、多数 NAS |
+| `'ssdp'` | SSDP/UPnP（239.255.255.250:1900） | 路由器、智能家电、媒体服务器 |
+| `'dns'` | 系统解析器（反向查询） | 走本地 DNS 的网络 |
+
+几条要记住的：
+
+- **解析不到就是空串**，与 `mac` 同一约定。`hostname` 与 `hostnameSource` **同进同退**：有名字就一定有来源，没名字时两个都是空串。字段永远在，插件可以直接 `device.hostname || device.address`，不必判 `undefined`。
+- **名字不影响设备是否出现。** 名字是在设备**已经确认在线之后**才去问的，问不到只是没名字，设备照样在 `devices` 里。反过来说，**别拿名字当在线依据**——名字解析不到的原因很多（对方禁了这些协议、防火墙挡了 UDP、跨了 VLAN），跟它在不在线无关。
+- **解析不保证成功，也不保证准确。** 很多网络（尤其是企业网与访客网）会把这些协议全挡掉，此时全部设备都是空串——这是正常结果，插件界面上应当退回显示 IP。`ssdp` 给的往往是型号或服务端标识（如 `Linux/3.14 UPnP/1.0`），不是机器名，别当成设备名去重。
+- **`ssdp` 的优先级最低**（`mdns` → `llmnr` → `netbios` → `ssdp` → `dns`），同一个地址被多个协议认出来时，取更靠前那个给的名字。
+- **解析有总预算**（约 2.5 秒，且最多问 64 台），所以它不会明显拖长扫描；但设备很多、网络很慢时，排在后面的设备可能来不及问，同样是空串。
 
 ### 可扫范围
 
