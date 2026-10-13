@@ -1,6 +1,6 @@
 # 系统
 
-系统 API 用于显示主应用 Toast、发送系统通知、打开外部链接，以及**局域网自动发现**、**生成二维码**与读取本机网卡地址。
+系统 API 用于显示主应用 Toast、发送系统通知、打开外部链接，以及**局域网自动发现**、**网段扫描**、**生成二维码**与读取本机网卡地址。
 
 ## toast
 
@@ -114,7 +114,7 @@ api.getCapabilities(): string[]
 
 | 接口 | 说明 |
 | --- | --- |
-| `getApiLevel()` | 宿主 API 级别。当前：1 = 首批能力，2 = 屏幕采集，3 = 读取文件内容 / 局域网发现 / 生成二维码 |
+| `getApiLevel()` | 宿主 API 级别。当前：1 = 首批能力，2 = 屏幕采集，3 = 读取文件内容 / 局域网发现 / 生成二维码，4 = 网段扫描 |
 | `hasCapability(name)` | 宿主是否具备某个能力，名字与 `permissions` 一致（如 `screen:capture`） |
 | `getCapabilities()` | 宿主全部能力名，按首次出现的级别排序 |
 
@@ -246,6 +246,148 @@ if (!found.ok) {
 }
 ```
 
+## 网段扫描（api.lan.scan）
+
+列出**本机所在网段**上此刻在线的设备。需要声明 `lan:scan`（**与上面的 `lan:discover` 是不同的权限**，见[权限与能力矩阵](/permissions)）。
+
+这和上面那组「局域网自动发现」回答的是两个不同的问题：
+
+| | `lan.discover`（`lan:discover`） | `lan.scan`（`lan:scan`） |
+| --- | --- | --- |
+| 问的是 | 「这个网段上有哪些**装了 ToolZen** 的设备」 | 「这个网段上**有哪些设备**」 |
+| 手段 | 组播小报文（只在自己人之间往来） | 朝每台设备发 TCP 连接 |
+| 对端要求 | 对方也装了 ToolZen 并开着插件 | 无，路由器、打印机、手机都算 |
+| 结果 | 对端的 `name` 与 `payload` | 地址、MAC、开放端口 |
+
+### 先选网段：getInterfaces
+
+```ts
+api.lan.getInterfaces(): Promise<Array<{
+  id: string            // 网卡标识
+  name: string          // 网卡名，如 'WLAN' / '以太网' / 'en0'
+  address: string       // 本机在这块网卡上的地址
+  prefixLength: number  // 子网前缀，如 24
+  netmask: string
+  kind: 'wifi' | 'ethernet' | 'virtual' | 'loopback' | 'unknown'   // 启发式判定，只用于显示
+  isDefault: boolean    // 是否承担默认路由（路由器所在的那块网卡）
+  networkId: string     // 网段标识，如 '192.168.1.0/24' —— 扫描时用它
+  mac: string
+}>>
+```
+
+只包含 **IPv4、非回环**的网卡。IPv6 不列：一个 `/64` 前缀下有 2^64 个地址，逐台探测不是这套接口能做的事，列出来只会诱使插件去扫一个永远扫不完的网段。
+
+`kind` 是**启发式**判定的，虚拟机网卡优先于有线网卡（因为 `vEthernet` 里也含 `ethernet`，顺序反了就会把虚拟网卡认成有线网卡）。它只适合拿来做图标，别拿它做逻辑判断。
+
+`isDefault` 是全表最有用的一个字段：多网卡机器上（VPN、WSL、Hyper-V、Docker 都会加网卡）应当**优先展示它**，而不是数组第一条——`networkInterfaces` 的顺序既不是路由优先级，也不是接口优先级。
+
+### 扫描
+
+```ts
+api.lan.scan(request: {
+  requestId: string     // 本轮扫描的标识，自己生成；取消时用它
+  interfaceId: string   // 取自 getInterfaces()
+  networkId: string     // 取自 getInterfaces()；必须逐字命中本机某块网卡当前的网段
+  timeoutMs?: number    // 时长上限（毫秒），默认 20000，范围 1000–120000
+}): Promise<{
+  ok: boolean
+  requestId: string
+  devices: Array<{
+    address: string
+    mac: string         // 扫描后从系统邻居表补的；读不到是空串
+    evidence: 'port-open' | 'host-rejected'
+    openPorts: number[] // evidence 为 'host-rejected' 时是空数组
+    self: boolean
+  }>
+  scannedAt: number     // 本轮结束时刻（epoch 毫秒）
+  coverage: {
+    interfaceId: string
+    networkId: string
+    total: number       // 网段内的主机总数（截断前）
+    probed: number      // 本轮真正探测过的地址数
+    truncated: boolean  // 是否因为网段太大只扫了其中一段
+    elapsedMs: number
+  }
+  code?: string         // 'ok' | 'timeout' | 'cancelled' | 'invalid' | 'too-many'
+  message?: string
+}>
+
+api.lan.cancelScan(requestId: string): Promise<boolean>
+```
+
+最小用法：
+
+```js
+const interfaces = await api.lan.getInterfaces()
+// 优先用承担默认路由的那块网卡。
+const target = interfaces.find((item) => item.isDefault) || interfaces[0]
+if (!target) {
+  api.toast('这台机器没有可扫描的网段')
+  return
+}
+
+const requestId = 'scan-' + Date.now()
+const result = await api.lan.scan({
+  requestId,
+  interfaceId: target.id,
+  networkId: target.networkId,
+  timeoutMs: 20000
+})
+
+if (!result.ok) {
+  // code: 'cancelled' / 'invalid' / 'too-many'——message 里有具体原因。
+  console.warn(result.message)
+}
+
+for (const device of result.devices) {
+  console.log(device.address, device.mac, device.openPorts.join('/'))
+}
+
+// 结果不全时如实告诉用户，而不是假装扫完了。
+if (result.code === 'timeout' || result.coverage.truncated) {
+  api.toast('结果可能不完整，可再扫一次或缩短范围')
+}
+```
+
+### 「在线」是怎么判定的
+
+`devices` 里的每一台都带**本轮真的收到了对方的报文**这一个依据，`evidence` 只有两种取值：
+
+- **`port-open`**：某个端口完成了 TCP 三次握手，对端主动应答了；
+- **`host-rejected`**：某个端口回了 RST（端口没开），但这个 RST 是**对方亲自回的**，同样证明它此刻在网段上。
+
+**系统 ARP 缓存不参与在线判定。** 那张表里的条目能存活很久，拔了网线、关了机的机器照样躺在里面；拿它当依据，界面上就会一直挂着一台早就不在的设备。宿主只在**已经确认在线之后**才从邻居表给设备补 `mac` 字段，所以 `mac` 为空只说明读不到，不代表设备不在线。
+
+反过来说：**没响应就是没进清单**。防火墙静默丢弃（DROP）的设备是扫不出来的，这与「不在线」在结果上无法区分——插件不要把它解释成「这台机器肯定不在」。
+
+### 可扫范围
+
+`networkId` 必须**逐字命中本机某块网卡当前的网段**（地址与掩码都要对上）。不匹配时 `scan` 回 `{ ok: false, code: 'invalid' }`，一发包都不发。
+
+这不是防谁，而是不让这套接口变成一台任意网段的扫描器：**插件能扫的范围，与用户这台电脑此刻所在的网络完全重合**。用户换了网络，可扫的网段就跟着变；用户没连的网络，插件一个包也发不出去。
+
+几个边界：
+
+- 网段超过 **1024 台主机**时只扫前面一段，`coverage.truncated` 为 `true`、`coverage.total` 报的是网段实际大小。/24（254 台）是最常见的情况，一次能扫完；/16 那种会截断。
+- 单次扫描最多 **120000 毫秒**；撞上上限会提前收工，`code` 为 `'timeout'`，**`devices` 里是已经扫到的那部分，不是空的**——大网段上时间不够是常态，把扫到的一半丢掉才是真的浪费。插件应当照常展示，并提示结果可能不全。
+- 同一个插件实例同时最多跑 **2 轮**扫描；超了回 `{ ok: false, code: 'too-many' }`。
+- 同一个 `requestId` 不许重入。
+
+### 取消
+
+```js
+const pending = api.lan.scan({ requestId, interfaceId, networkId })
+// 用户按了「停止」，或者插件要退出：
+const cancelled = await api.lan.cancelScan(requestId)
+const result = await pending
+// result.ok === false，result.code === 'cancelled'
+```
+
+- **只取消得动本插件实例发起的那些。** 同一个窗口里另一个插件、或者别的窗口，拿了 `requestId` 也停不了（回 `false`）。
+- 找不到就回 `false`：已经跑完、已经被取消过、或者压根不是自己发起的，都算找不到。
+- **插件退出时宿主自动收掉它名下所有还在跑的扫描**（组件卸载、窗口关闭都会触发），插件不必在 `onPluginOut` 里额外收尾。
+- 被取消时 `devices` 里是**已经扫到的那部分**，同样每台都带证据——可以显示「扫到一半被停了」，而不是清空。
+
 ## 读取本机网卡地址（getLocalAddresses）
 
 列出本机的网卡地址，用于排查「两台电脑不在同一网段」这类连接失败。
@@ -260,6 +402,8 @@ api.getLocalAddresses(): Promise<Array<{
 ```
 
 **不需要任何权限**：只读、不含用户数据，而且这些地址在同网段本来就是公开的。仍登记为 `lan:discover` 能力，让老客户端能被 `requires` 拦下。
+
+> 它和 `api.lan.getInterfaces()` 的区别：这个是「这台机器有哪些地址」的老接口，**含回环、含 IPv6**，不给你网段；要扫网段请用 `api.lan.getInterfaces()`（它只列可扫的 IPv4 网卡，并带 `networkId` 与 `isDefault`），那个登记在 `lan:scan` 能力下、4 级起可用。
 
 ```js
 const addresses = await api.getLocalAddresses()

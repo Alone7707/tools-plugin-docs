@@ -160,11 +160,16 @@
 | `discoverLanService` | `{ service, timeoutMs? }` | `Promise<PluginLanDiscoverResult>` | 搜一轮同网段对端；对应 `api.lan.discover` |
 | `stopLanService` | `{ id? }` | `Promise<{ ok: boolean }>` | 停止播报；对应 `api.lan.stop` |
 | `getLocalAddresses` | 无 | `Promise<PluginLocalAddress[]>` | 列出本机网卡地址；对应 `api.getLocalAddresses`（不需要权限） |
+| `getLanInterfaces` | 无 | `Promise<PluginLanInterface[]>` | 列出可扫的网段；对应 `api.lan.getInterfaces`（需要 `lan:scan`） |
+| `scanLan` | `{ requestId, interfaceId, networkId, timeoutMs? }` | `Promise<PluginLanScanResult>` | 扫一轮网段；对应 `api.lan.scan` |
+| `cancelLanScan` | `{ requestId }` | `Promise<boolean>` | 取消本插件实例发起的一轮扫描；对应 `api.lan.cancelScan` |
 | `renderQrCode` | `{ text, size?, margin?, level? }` | `Promise<PluginQrCodeResult>` | 渲染二维码 PNG Data URL；对应 `api.renderQrCode`（不需要权限） |
 | `getDroppedPath` | `file: File` | `string` | 拖入文件反查绝对路径；`api.getPathForFile` 的底层调用（同上文开发者专区表格） |
 | `onShortcutClipboardFileCandidate` | `(callback: (paths: string[]) => void)` | `() => void` | 主进程事件：剪贴板现在持有这些文件，呼出时触发；`[]` 表示清空候选 |
 
-**bridge 层自己不做任何权限检查**：`file:read` / `file:read-content` / `file:write` / `lan:discover` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()`、`api.file.*` 与 `api.lan.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileScanResult`、`PluginFileExistsResult`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult`、`PluginFileWriteRequest`、`PluginFileWriteResult`、`PluginFileReadRequest`、`PluginFileReadResult`、`PluginLanAdvertiseRequest`、`PluginLanDiscoverResult`、`PluginLocalAddress`、`PluginQrCodeRequest`、`PluginQrCodeResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)、[系统](/api/system)。
+**bridge 层自己不做任何权限检查**：`file:read` / `file:read-content` / `file:write` / `lan:discover` / `lan:scan` 的门禁在 `api` 层完成，因此直接调用 `window.toolzen` 会绕过插件声明的权限。第三方插件必须使用 `api` prop 暴露的 `api.readClipboardFiles()`、`api.getPathForFile()`、`api.file.*` 与 `api.lan.*`，不要直接调用上表方法。`PluginFileScanOptions`、`PluginFileEntry`、`PluginFileScanResult`、`PluginFileExistsResult`、`PluginFileRenameRequest`、`PluginFileRenameResult`、`PluginFileGrantResult`、`PluginFileWriteRequest`、`PluginFileWriteResult`、`PluginFileReadRequest`、`PluginFileReadResult`、`PluginLanAdvertiseRequest`、`PluginLanDiscoverResult`、`PluginLocalAddress`、`PluginLanInterface`、`PluginLanScanRequest`、`PluginLanScanResult`、`PluginLanDevice`、`PluginLanScanCoverage`、`PluginQrCodeRequest`、`PluginQrCodeResult` 见 [TypeScript 类型参考](/api/types) 与[文件](/api/file)、[系统](/api/system)。
+
+`scanLan` 的入参里还有宿主注入的 `pluginCode`：它不属于插件 API 契约（`api.lan.scan` 会自己填上），直接调 bridge 时省掉它，主进程会把归属算到「当前窗口 + 空插件 code」上。
 
 ## 屏幕采集（宿主内部）
 

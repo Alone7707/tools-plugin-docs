@@ -36,6 +36,7 @@
 | `file:read-content` | 按路径与偏移读取文件**内容** | `api.file.read()` | **能拿到文件字节本身**。只在用户明确选择/拖入的文件上读取，不要拿它遍历磁盘 |
 | `file:write` | 在用户本次授权范围内重命名文件、写入新文件 | `api.file.grant()`、`api.file.rename()`、`api.file.write()` | 会改动用户磁盘；先 `dryRun` 并把结果展示给用户。写入只受理用户交出来的路径 |
 | `lan:discover` | 在同网段播报自己的存在、搜索同网段的其它 ToolZen | `api.lan.advertise()`、`api.lan.discover()`、`api.lan.stop()` | 会向本地网络广播一个含 `payload` 的小报文（同网段可见）；不要把敏感信息放进 `payload` |
+| `lan:scan` | 枚举本机可扫的网段、扫描网段上在线的设备 | `api.lan.getInterfaces()`、`api.lan.scan()`、`api.lan.cancelScan()` | **会向网段内每一台机器发起 TCP 连接**（对方装没装 ToolZen 都无所谓）；只在用户明确发起扫描时使用，不要后台常开 |
 | `screen:capture` | 枚举屏幕与窗口、采集画面与系统声音、区域选区、置顶悬浮窗 | `api.desktopCapturer.getSources()`、`api.capture.getStream()`、`api.overlay.selectRegion()`、`api.floatWindow.*` | **能拿到用户屏幕上的全部内容**，包括其它应用的窗口；只在用户明确发起录制后采集，不要后台常开，并说明录制内容存在哪里 |
 
 全局快捷键（`api.registerShortcut`）不需要声明权限：它只在插件运行期间生效，退出即自动注销，且组合键被宿主或其他应用占用时宿主会直接拒绝。它抢的是系统级键位，插件仍要挑得克制，并在注册失败时如实提示用户。
@@ -64,7 +65,16 @@
 
 读取内容的护栏比扫描更严：`file.scan` 只要求声明权限，而 `file.read` **只肯读本会话已授权集合里的路径**，没 `grant` 过的一律回 `not-granted`。拖进插件自身拖放区的文件要先 `api.getPathForFile()` + `api.file.grant()`。
 
-局域网层（`lan:discover`）也单独成层：播报与搜索要在**主进程**开一个组播套接字（渲染层不能监听端口），所以必须由宿主代劳。未声明 `lan:discover` 时 `advertise` / `discover` 回 `{ ok: false, code: 'invalid' }`、`stop` 回 `false`，一个包都不会发出去。详见[系统](/api/system)。
+局域网层也单独成层，而且那是**两件事、两项权限**，不要把它们当成一件事：
+
+| 权限 | 覆盖 | 它真正做的事 |
+| --- | --- | --- |
+| `lan:discover` | `lan.advertise` / `lan.discover` / `lan.stop` | 在组播地址上收发小报文，让**同网段装了 ToolZen 的设备互相看见** |
+| `lan:scan` | `lan.getInterfaces` / `lan.scan` / `lan.cancelScan` | 朝网段里**每一台设备**发起 TCP 连接，把在线的列出来（对方是什么都无所谓） |
+
+两项**刻意分开**，理由与 `file:read` / `file:read-content` 那一对完全一样：`lan:discover` 自 3 级起就发给插件了，报文只在自己人之间往来；若把「扫全网段」并进同一个权限名，**已发布的插件会静默获得扫整个网段的能力**——用户当初同意的是「参与局域网发现」，不是「用我的电脑去探测网段里每一台机器」。分开之后，商店与用户都能看到这次授权升级。反过来说，只声明 `lan:scan` 的插件也拿不到 `advertise` / `discover`。
+
+两项都必须由宿主代劳：渲染层不能监听 UDP 端口，也发不出原始 TCP 连接（`connect` 只到页面所在的主机与端口）。未声明时一律在渲染层拦住、一个包都不发：`lan:discover` 缺了则 `advertise` / `discover` 回 `{ ok: false, code: 'invalid' }`、`stop` 回 `false`；`lan:scan` 缺了则 `getInterfaces` 回空数组、`scan` 回 `{ ok: false, code: 'invalid', devices: [] }`、`cancelScan` 回 `false`。详见[系统](/api/system#网段扫描apilanscan)。
 
 屏幕采集层同样单独成层，原因和文件层一样：它有一部分必须在**主进程**执行。采集源无法在渲染层枚举（W3C 规范禁止 `enumerateDevices` 暴露它们，`desktopCapturer` 也只在主进程可用），`getDisplayMedia` 在没有宿主安装 request handler 时必抛 `NotSupportedError`，系统回环音频也只能由主进程给出。未声明 `screen:capture` 时：枚举回空数组、`getMediaAccessStatus` 回 `'unknown'`、`selectRegion` 回 `null`，而 `capture.getStream` **直接抛错**（静默给一条空流会让插件以为录上了）。详见[屏幕](/api/screen)。
 
@@ -76,7 +86,9 @@
 | `api.renderQrCode()` | 纯计算：把一段文本画成图片，不碰用户任何数据 |
 | `api.getLocalAddresses()` | 只读本机网卡地址，不含用户数据；且这些地址在同网段本来就是公开的 |
 
-它们仍登记在**能力清单**里（`qrcode:render` / `lan:discover`），这样老客户端能被 `requires` 拦下，而不是加载起来再报一个看不懂的错。前面三项解决的是「主窗口收起 30 秒后插件页被会话重置卸载、后台任务中断」这个问题。
+它们仍登记在**能力清单**里（`qrcode:render` / `lan:discover` / `lan:scan`），这样老客户端能被 `requires` 拦下，而不是加载起来再报一个看不懂的错。注意 `api.getLocalAddresses()` 与 `api.lan.getInterfaces()` 虽然都不需要权限，但登记的能力不同——前者挂在 `lan:discover` 下（3 级起可用），后者挂在 `lan:scan` 下（4 级起可用）。
+
+前面三项解决的是「主窗口收起 30 秒后插件页被会话重置卸载、后台任务中断」这个问题。
 
 `network:fetch` 的执行方式与文件能力不同：它对应 `api.network.fetch()`，请求由宿主**主进程**发出，不受渲染层同源策略约束，因此目标服务不需要返回 CORS 头。未声明 `network:fetch` 时 `api.network.fetch` 直接抛 `TypeError`（消息点明缺少哪个权限），不会发出任何请求。插件仍可继续使用全局 `fetch`，但它跑在渲染层、只能访问同源地址；老宿主没有 `api.network.fetch` 时应退回全局 `fetch`。详见[网络](/api/network)。
 
