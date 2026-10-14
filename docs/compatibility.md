@@ -122,6 +122,12 @@ if (supports(api, 'screen:capture')) {
 | 2 | `screen:capture` |
 | 3 | `file:read-content`、`lan:discover`、`qrcode:render` |
 | 4 | `lan:scan` |
+| 5 | `system:shell`、`clipboard:write-files` |
+| 6 | `schedule:request` |
+| 7 | `feature:dynamic`、`feature:mainpush`、`plugin:ready` |
+| 8 | `ai:chat`、`ai:tools` |
+
+**能力名与 `permissions` 同名，但两者是两条独立的轴**，别混：`permissions` 管「插件获准做什么」（服务端审核 + 运行期权限门），`requires` / `optional` 管「宿主会不会做」（客户端在加载前判定）。两个条件都满足才能真正调用。其中 `qrcode:render`、`plugin:ready` 属于「宿主得有、但不需要授权」的能力——它们只登记在能力清单里，不进权限白名单。详见[权限与能力矩阵](/permissions)。
 
 > **不要用 `getAppVersion()` 判断能力。** 版本号里既有修 bug 也有加能力，拿它比较迟早误判。判断能力请用 `apiLevel` 或 `hasCapability()`。
 

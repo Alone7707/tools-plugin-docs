@@ -56,6 +56,9 @@ const siteConfigOptions = {
             { text: '用户', link: '/api/user' },
             { text: '数据存储', link: '/api/db' },
             { text: '动态指令', link: '/api/features' },
+            { text: '搜索框集成', link: '/api/search' },
+            { text: '定时任务', link: '/api/schedule' },
+            { text: 'AI 能力', link: '/api/ai' },
             { text: '类型与契约', link: '/api/contracts' },
             { text: 'TypeScript 类型', link: '/api/types' }
           ]

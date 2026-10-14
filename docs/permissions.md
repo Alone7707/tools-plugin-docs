@@ -30,14 +30,25 @@
 | --- | --- | --- | --- |
 | `clipboard:read` | 读取剪贴板内容或声明剪贴板识别规则 | `api.readClipboardText()`、`api.readClipboardImage()`、`api.readClipboardFiles()`、`initialText` / `enterAction` | 只处理插件必要的数据，不要长期保存 |
 | `clipboard:write` | 将结果写入系统剪贴板或清空剪贴板 | `api.copyText(text)`、`api.copyClipboardImage(dataUrl)`、`api.clearClipboard()` | 不要覆盖用户剪贴板而不提示 |
+| `clipboard:write-files` | 把文件路径写入剪贴板（用户粘到别的应用里会真的产生副本） | `api.copyFile(paths)` | 与 `clipboard:write` 是**两项权限**：那个是写文本，这个是写文件。粘出去会真的落盘，不要在用户没察觉时替换他的剪贴板 |
 | `network:fetch` | 由宿主主进程代发网络请求 | `api.network.fetch()` | 不受同源策略（CORS）限制，可访问任意 `http(s)` 服务，且不带宿主自身 cookie；应披露数据去向 |
 | `file:dialog` | 打开系统文件选择或保存对话框 | `api.showOpenDialog()`、`api.showSaveDialog()` | 只读取用户主动选择的路径；宿主不替插件读写文件 |
 | `file:read` | 读取用户交给插件的文件**信息**（名称、大小、时间） | `api.file.scan()`、`api.file.exists()`、`api.file.reveal()` | 只扫描必要的路径，不要遍历用户整个磁盘。它**不返回文件内容** |
 | `file:read-content` | 按路径与偏移读取文件**内容** | `api.file.read()` | **能拿到文件字节本身**。只在用户明确选择/拖入的文件上读取，不要拿它遍历磁盘 |
 | `file:write` | 在用户本次授权范围内重命名文件、写入新文件 | `api.file.grant()`、`api.file.rename()`、`api.file.write()` | 会改动用户磁盘；先 `dryRun` 并把结果展示给用户。写入只受理用户交出来的路径 |
+| `system:shell` | 用系统默认程序打开文件/文件夹、把文件移入回收站、读取文件图标 | `api.shellOpenPath()`、`api.shellTrashItem()`、`api.getFileIcon()` | **`shellTrashItem` 会把文件移进回收站**，是用户可见的破坏性操作；`shellOpenPath` 会拉起关联程序。只在用户明确点选时执行，并让用户看清动的是哪个路径 |
 | `lan:discover` | 在同网段播报自己的存在、搜索同网段的其它 ToolZen | `api.lan.advertise()`、`api.lan.discover()`、`api.lan.stop()` | 会向本地网络广播一个含 `payload` 的小报文（同网段可见）；不要把敏感信息放进 `payload` |
 | `lan:scan` | 枚举本机可扫的网段、扫描网段上在线的设备 | `api.lan.getInterfaces()`、`api.lan.scan()`、`api.lan.cancelScan()` | **会向网段内每一台机器发起 TCP 连接**（对方装没装 ToolZen 都无所谓）；只在用户明确发起扫描时使用，不要后台常开 |
 | `screen:capture` | 枚举屏幕与窗口、采集画面与系统声音、区域选区、置顶悬浮窗 | `api.desktopCapturer.getSources()`、`api.capture.getStream()`、`api.overlay.selectRegion()`、`api.floatWindow.*` | **能拿到用户屏幕上的全部内容**，包括其它应用的窗口；只在用户明确发起录制后采集，不要后台常开，并说明录制内容存在哪里 |
+| `schedule:request` | 申请定时任务，到点由宿主触发（**插件没运行时也会被拉起**） | `api.requestSchedule()`、`api.getSchedules()`、`api.removeSchedule()`、`api.onScheduleTrigger()` | **能让插件在用户没打开它的时候被自动唤起**。只在用户明确需要「定期自动做某事」时才申请，任务名要说清干什么；不要用它做后台轮询 |
+| `feature:dynamic` | 运行期增删自己的搜索入口 | `api.setFeature()`、`api.getFeatures()`、`api.removeFeature()` | **会改主界面上用户能看到的入口**。入口名要如实描述它打开什么，不要伪装成别的插件或系统功能 |
+| `feature:mainpush` | 在主搜索框里推送内容（用户每打一个字都会被调用一次） | `api.onMainPush()` | 输入是**同步热路径**，回调要快、要稳；推送项要真的与用户输入相关，不要塞广告或常驻项 |
+| `ai:chat` | 调用平台 AI 模型 | `api.ai()`、`api.allAiModels()` | **消耗平台的付费额度**。插件额度与用户的内置对话额度**分开计算**（默认每人每天 50 次，所有插件合计），插件烧光自己那档不影响用户对话；但请勿循环调用或在后台空转，并在界面上如实显示剩余次数 |
+| `ai:tools` | 把插件能力注册成 AI 可调用的工具 | `api.registerTool()` | 工具的 `description` 是模型判断「什么时候该用」的唯一依据，写清副作用；工具有副作用的（写文件、发请求）要谨慎，模型可能在你没预期的时候调用它 |
+
+**权限与能力同名，但两者是两条独立的轴**：`permissions` 管「插件获准做什么」，`requires` / `optional` 管「宿主会不会做」。详见[版本与兼容性](/compatibility)。
+
+有几项能力**不需要权限**，但仍登记在能力清单里（便于老客户端被 `requires` 拦下）：`api.renderQrCode()`（纯计算）、`api.getLocalAddresses()`（只读本机网卡）、`api.holdSessionReset()` / `api.hideMainWindowKeepAlive()`（只是「别把我卸载掉」）、`api.getNativeId()` / `api.getPluginLocalDataPath()` / `api.getPluginTempPath()`（设备标识与插件自己的目录）、`api.onPluginReady()`（宿主通知插件「你已就绪」）。
 
 全局快捷键（`api.registerShortcut`）不需要声明权限：它只在插件运行期间生效，退出即自动注销，且组合键被宿主或其他应用占用时宿主会直接拒绝。它抢的是系统级键位，插件仍要挑得克制，并在注册失败时如实提示用户。
 

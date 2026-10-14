@@ -89,6 +89,82 @@ api.showSaveDialog(options?: {
 api.shellBeep(): Promise<boolean>
 ```
 
+## 系统外壳操作（`system:shell`）
+
+这一组会**动用户系统里真实的东西**，所以单开一项权限 `system:shell`，不与文件读写混在一起。
+
+```ts
+api.shellOpenPath(path: string): Promise<boolean>
+api.shellTrashItem(path: string): Promise<boolean>
+api.getFileIcon(path: string, size?: number): Promise<string>
+```
+
+### shellOpenPath
+
+用系统默认程序打开一个文件或文件夹（等同于用户在资源管理器里双击它）。
+
+```js
+await api.shellOpenPath('D:\\报告\\季度总结.xlsx')
+```
+
+- 只受理**存在的绝对路径**；相对路径或不存在的路径一律回 `false`，不会走系统调用。
+- 打开失败（没有关联程序、权限不足）也回 `false`——宿主把系统给的错误描述翻译成了布尔值，插件不必解析错误文本。
+- 注意它会**拉起别的应用并把窗口切走**，不要在用户没预期的时候调用。
+
+### shellTrashItem
+
+把文件或文件夹移进系统回收站。
+
+```js
+if (await api.shellTrashItem(target)) {
+  api.toast('已移入回收站')
+}
+```
+
+- **这是破坏性操作**，虽然进的是回收站（还能还原），但用户会立刻看到文件不见了。**只应在用户明确点选「删除」之后调用**，并在界面上说清动的是哪个路径。
+- 与 `shellOpenPath` 同样的路径要求：存在的绝对路径。
+
+### getFileIcon
+
+取文件、文件夹或扩展名对应的系统图标，回 **Base64 Data URL**，可直接塞进 `<img src>`。
+
+```js
+const icon = await api.getFileIcon('D:\\报告\\季度总结.xlsx')
+const extIcon = await api.getFileIcon('.pdf')   // 按扩展名问图标，路径不必存在
+```
+
+- 第二个参数 `size` 是期望的图标边长（像素）；不传用系统默认。
+- **拿不到图标时回空串**，不抛错——图标是锦上添花，插件应当能照常显示文件名（比如退回一个默认图标或首字母块）。
+- **macOS 上只对 `.app` 应用包有效**（宿主直接读包内的 ICNS），其余路径一律回空串。这是刻意的：macOS 的系统图标接口在部分机型上会让宿主进程崩溃，宿主选择绕开它而不是冒险。
+
+## 设备与插件目录
+
+### getNativeId
+
+读取**设备标识**：同一台机器上所有插件拿到同一个值。
+
+```ts
+api.getNativeId(): Promise<string>
+```
+
+- 它是**设备级**标识，**不是账号标识**——没登录也有值，换账号也不变。别拿它当用户 ID 用。
+- 由机器名与平台哈希而来，不含用户名、网卡地址这类能反查到个人的信息，也不落盘、不上报。
+- 机器名变了它就会变，所以**不适合做长期唯一标识**（比如不能拿它当云端的账号主键）。
+
+### getPluginLocalDataPath / getPluginTempPath
+
+取本插件专属的数据目录与临时目录，**目录不存在时宿主会自动创建**。
+
+```ts
+api.getPluginLocalDataPath(): Promise<string>
+api.getPluginTempPath(): Promise<string>
+```
+
+- 两个目录都**按插件 code 隔离**：不同插件拿到的是不同目录，互相读不到对方的数据。
+- **不要自己拼路径**。插件跑在渲染层，拿不到 Electron 的 `app.getPath`，也算不出用户主目录；自己拼出来的路径在别的机器上一定是错的。
+- 返回空串表示宿主创建目录失败（磁盘满、权限不足），插件要有降级方案。
+- 数据目录里的内容**不会被自动清理**（临时目录会被系统清理）。要长期保存的东西放数据目录，中间产物放临时目录。
+
 ## 应用运行环境
 
 ### getAppName / getAppVersion
